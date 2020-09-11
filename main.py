@@ -106,16 +106,16 @@ if __name__ == '__main__':
             # wjls(min_power=-1, max_power=3, mode='j_relative_error'),
         ]
         data_file, data_name, c_ref, hc_file_name = source_data[i]
-        data_dict = {'dh': f'../Data/{data_file}.txt'}
+        data_dict = {'dh': f'Data/{data_file}.txt'}
         # data_dict = {}
         if hc_file_name != '':
-            data_dict['cp'] = f'../Data/{hc_file_name}.txt'
+            data_dict['cp'] = f'Data/{hc_file_name}.txt'
         data_frame = DataFrame(data_dict, name=data_name)
         data_frame.set_initial_conditions(reference_temperature=298.15, reference_cvalue=c_ref, reference_cerror=0.1,
                                           experiment_weight=0.01)
 
         if hc_file_name != '':
-            hc_data = SingleDataFrame(f'../Data/{hc_file_name}.txt', name=data_name + 'Cp')
+            hc_data = SingleDataFrame(f'Data/{hc_file_name}.txt', name=data_name + 'Cp')
 
         # data_frame.filter_by_temperature(min_temperature=439, max_temperature=1156)
 

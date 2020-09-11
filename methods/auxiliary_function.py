@@ -1,4 +1,4 @@
-from methods.dataframe import DataFrame
+from dataframe import DataFrame
 import numpy as np
 
 
