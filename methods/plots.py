@@ -14,9 +14,9 @@ def plot_fits(methods, subplot_position, subplot_title, data_frame):
     ax.spines['top'].set_visible(False)
     ax.spines['right'].set_visible(False)
 
-    data_frame.dh_data.plot(s=20, color='navy')
+    data_frame.enthalpy_data.plot(s=20, color='navy')
     for (method, color, linestyle) in zip(methods, method_colors, line_styles):
-        method.plot(ax, color=color, label=method.name, linestyle=linestyle)
+        method.plot_enthalpy(ax, color=color, label=method.name, linestyle=linestyle)
     ax.set_title(subplot_title)
 
     ax.set_ylabel('dH, J/K/Mol')
@@ -24,7 +24,7 @@ def plot_fits(methods, subplot_position, subplot_title, data_frame):
     ax.legend(loc='upper left')
 
 
-def plot_fit_derivatives(methods, subplot_position, subplot_title):
+def plot_fit_heat_capacity(methods, subplot_position, subplot_title):
     ax = plt.subplot(subplot_position)
     ax.spines['top'].set_visible(False)
     ax.spines['right'].set_visible(False)
@@ -37,7 +37,7 @@ def plot_fit_derivatives(methods, subplot_position, subplot_title):
     ax.legend(loc='upper left')
 
 
-def plot_fit_derivatives_with_dots(methods, subplot_position, subplot_title, source):
+def plot_fit_heat_capacity_with_dots(methods, subplot_position, subplot_title, source):
     ax = plt.subplot(subplot_position)
     ax.spines['top'].set_visible(False)
     ax.spines['right'].set_visible(False)
@@ -46,20 +46,20 @@ def plot_fit_derivatives_with_dots(methods, subplot_position, subplot_title, sou
     source.plot(s=20, color='navy')
 
     for (method, color, linestyle) in zip(methods, method_colors, line_styles):
-        method.plot_derivative(ax, color=color, label=method.name, linestyle=linestyle)
+        method.plot_heat_capacity(ax, color=color, label=method.name, linestyle=linestyle)
     ax.set_title(subplot_title)
 
     ax.set_xlabel('T, K')
     ax.legend(loc='upper left')
 
 
-def plot_residuals(methods, subplot_position, subplot_title):
+def plot_enthalpy_residuals(methods, subplot_position, subplot_title):
     ax = plt.subplot(subplot_position)
     ax.spines['top'].set_visible(False)
     ax.spines['right'].set_visible(False)
 
     for (method, color) in zip(methods, method_colors):
-        method.plot_residuals(ax, s=10, color=color, label=method.name)
+        method.plot_enthalpy_residuals(ax, s=10, color=color, label=method.name)
     ax.set_title(subplot_title)
     ax.set_xlabel('T, K')
     ax.set_ylabel('Standardised residuals')
@@ -67,13 +67,13 @@ def plot_residuals(methods, subplot_position, subplot_title):
     ax.legend(loc='upper left')
 
 
-def plot_derivative_residuals(methods, subplot_position, subplot_title):
+def plot_heat_capacity_residuals(methods, subplot_position, subplot_title):
     ax = plt.subplot(subplot_position)
     ax.spines['top'].set_visible(False)
     ax.spines['right'].set_visible(False)
 
     for (method, color) in zip(methods, method_colors):
-        method.plot_derivative_residuals(ax, s=10, color=color, label=method.name)
+        method.plot_heat_capacity_residuals(ax, s=10, color=color, label=method.name)
     ax.set_title(subplot_title)
     ax.set_xlabel('T, K')
     ax.set_ylabel('Standardised residuals')
@@ -158,11 +158,11 @@ def basic_plots(methods, data, show_plot=True, save_plot=False, comment='', sour
 
     plot_fits(methods, 221, data.name, data)
     if source_dots:
-        plot_fit_derivatives_with_dots(methods, 222, 'Specific heat', source_dots)
+        plot_fit_heat_capacity_with_dots(methods, 222, 'Specific heat', source_dots)
     else:
-        plot_fit_derivatives(methods, 222, 'Specific heat')
-    plot_residuals(methods, 223, 'Residuals')
-    plot_derivative_residuals(methods, 224, 'Heat Capacity Residuals')
+        plot_fit_heat_capacity(methods, 222, 'Heat Capacity')
+    plot_enthalpy_residuals(methods, 223, 'Residuals')
+    plot_heat_capacity_residuals(methods, 224, 'Heat Capacity Residuals')
 
     if show_plot:
         plt.tight_layout()
@@ -200,7 +200,7 @@ def dh_and_cp_plots(methods, data, source_dots, show_plot=True, save_plot=False,
     plt.suptitle(f'{data.name} {comment}')
 
     plot_fits(methods, 121, data.name, data)
-    plot_fit_derivatives_with_dots(methods, 122, 'Specific heat', source_dots)
+    plot_fit_heat_capacity_with_dots(methods, 122, 'Specific heat', source_dots)
     if show_plot:
         plt.tight_layout()
         plt.show()
@@ -217,15 +217,15 @@ def mad_trash_save_all(methods, data, comment=''):
     plt.savefig(f'../Plots/Temp/{data.name}_AllMethods_{comment}.png', bbox_inches='tight')
     plt.cla()
 
-    plot_fit_derivatives(methods, 111, 'Specific heat')
+    plot_fit_heat_capacity(methods, 111, 'Specific heat')
     plt.savefig(f'../Plots/Temp/{data.name}_Derivatives_{comment}.png', bbox_inches='tight')
     plt.cla()
 
-    plot_residuals(methods, 111, 'Residuals')
+    plot_enthalpy_residuals(methods, 111, 'Residuals')
     plt.savefig(f'../Plots/Temp/{data.name}_Residuals_{comment}.png', bbox_inches='tight')
     plt.cla()
 
-    plot_derivative_residuals(methods, 111, 'Derivative Residuals')
+    plot_heat_capacity_residuals(methods, 111, 'Derivative Residuals')
     plt.savefig(f'../Plots/Temp/{data.name}_der_resid_{comment}.png', bbox_inches='tight')
     plt.cla()
 

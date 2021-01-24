@@ -12,25 +12,25 @@ class FitMethod:
         """Fit experimental data in given data frame."""
         pass
 
-    def plot(self, ax, **kwargs):
+    def plot_enthalpy(self, ax, **kwargs):
         """Plot fit result using matplotlib."""
-        ax.plot(self.temp, self.fit, **kwargs)
+        ax.plot(self.temperature, self.fit, **kwargs)
 
-    def plot_derivative(self, ax, **kwargs):
-        """Plot derivative of the fit result using matplotlib."""
+    def plot_heat_capacity(self, ax, **kwargs):
+        """Plot heat capacity (derivative of the enthalpy fit result) using matplotlib."""
         try:
-            ax.plot(self.data_frame.cp_t, self.fit_derivative, **kwargs)
+            ax.plot(self.data_frame.cp_t, self.fit_heat_capacity, **kwargs)
         except ValueError:
             try:
-                ax.plot(self.data_frame.dh_t, self.fit_derivative, **kwargs)
+                ax.plot(self.data_frame.dh_t, self.fit_heat_capacity, **kwargs)
             except ValueError:
                 print('Something wrong with ', self.name)
                 pass
 
-    def calculate_residuals(self):
-        self.residuals = (self.experiment - self.fit) / np.std(self.experiment - self.fit)
+    def calculate_enthalpy_residuals(self):
+        self.residuals = (self.enthalpy_data - self.fit) / np.std(self.enthalpy_data - self.fit)
 
-    def calculate_derivative_residuals(self):
+    def calculate_heat_capacity_residuals(self):
         pass
 
     def calculate_refpoints(self):
@@ -49,13 +49,13 @@ class FitMethod:
         """Explicitly annotate points with influential cook's distance"""
         pass
 
-    def plot_residuals(self, ax, **kwargs):
+    def plot_enthalpy_residuals(self, ax, **kwargs):
         """Plot standartised residuals using matplotlib."""
-        ax.scatter(self.temp, self.residuals, **kwargs)
+        ax.scatter(self.temperature, self.residuals, **kwargs)
 
-    def plot_derivative_residuals(self, ax, **kwargs):
+    def plot_heat_capacity_residuals(self, ax, **kwargs):
         """Plot standartised residuals using matplotlib."""
-        ax.scatter(self.cp_temp, self.derivative_residuals, **kwargs)
+        ax.scatter(self.cp_temp, self.heat_capacity_residuals, **kwargs)
 
     def plot_normality(self, ax, color, label):
         """qq normality test"""
@@ -79,8 +79,8 @@ class FitMethod:
         """Scale-Location"""
         try:
             residuals_sqrt = np.sqrt(np.abs(self.residuals))
-            ax.scatter(self.data_frame.temp, residuals_sqrt, color=color, label=label)
-            sns.regplot(self.data_frame.temp, residuals_sqrt, scatter=False, ci=False, lowess=True,
+            ax.scatter(self.data_frame.temperature, residuals_sqrt, color=color, label=label)
+            sns.regplot(self.data_frame.temperature, residuals_sqrt, scatter=False, ci=False, lowess=True,
                         line_kws={'color': color, 'lw': 1, 'alpha': 0.8})
         except AttributeError:
             pass
