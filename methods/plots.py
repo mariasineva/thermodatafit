@@ -1,3 +1,4 @@
+
 import matplotlib.pyplot as plt
 import datetime
 now = datetime.datetime.now()
@@ -41,7 +42,7 @@ def plot_fit_derivatives_with_dots(methods, subplot_position, subplot_title, sou
     ax.spines['top'].set_visible(False)
     ax.spines['right'].set_visible(False)
 
-    source.filter_by_temperature(min_temperature=300, max_temperature=3000)
+    # source.filter_by_temperature(min_temperature=300, max_temperature=3000)
     source.plot(s=20, color='navy')
 
     for (method, color, linestyle) in zip(methods, method_colors, line_styles):

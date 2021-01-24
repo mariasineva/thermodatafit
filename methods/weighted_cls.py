@@ -7,20 +7,22 @@ from scipy.optimize import curve_fit
 
 
 class WeightedJointLeastSquares(FitMethod):
-    def __init__(self, min_power, max_power, mode='h', weight_parameter = 0.001):
+    def __init__(self, min_power, max_power, mode='h', weight_parameter = 0.001, cp_weight = 1, dh_weight = 1):
         assert min_power <= 0, "min power should be <= 0"
         assert max_power >= 1, "max power should be >= 1"
         assert max_power - min_power > 1, "there should be at least 3 powers for regression"
 
         self.mode = mode
         if mode == 'j':
-            self.name = f"Weighted JLS (powers {min_power} ... {max_power}), {mode} mode,\nweight = {weight_parameter}"
+            self.name = f"Weighted JLS (powers {min_power} ... {max_power}), {mode} mode,\nCp_w = {cp_weight}, dH_w = {dh_weight}"
         else:
             self.name = f"Weighted JLS (powers {min_power} ... {max_power}), {mode} mode"
         self.min_power = min_power
         self.max_power = max_power
         self.params = np.ones(self.max_power - self.min_power - 1)
         self.weight_parameter = weight_parameter
+        self.cp_weght = cp_weight
+        self.dh_weight = dh_weight
         # self.params = [1.1, 1.2, 1.3]
         # self.params = [421837.98178119294, -0.0010255567341795329, 7.761188261605731e-07]
 
@@ -211,6 +213,14 @@ class WeightedJointLeastSquares(FitMethod):
                                     args=(self.data_frame.cp_t, self.data_frame.cp_e, self.weights,))
 
         self.fit_coefficients = aux_fit.x.tolist()
+
+        # fit_coefficients, соответствующий нулевой степени икса не влияет на минимум cp, а значит его надо посчитать
+        # отдельно, исходя из того что fit(t_ref) = h_ref.
+        zero_power_index = -self.min_power
+        self.fit_coefficients[zero_power_index] += \
+            self.data_frame.reference_value \
+            - self.dh_draw(self.fit_coefficients, self.data_frame.reference_temperature)
+
         self.fit = self.dh_draw(self.fit_coefficients, self.data_frame.dh_t)
         self.fit_derivative = self.cp_draw(self.fit_coefficients, self.data_frame.cp_t)
 
@@ -234,9 +244,9 @@ class WeightedJointLeastSquares(FitMethod):
         updated_cp = self.data_frame.cp_e - c_1 * np.ones(len(self.cp_temp))
 
         self.dh_weights = np.ones(len(self.temp))
-        self.dh_weights *= 1/self.weight_parameter
+        self.dh_weights *= self.dh_weight
         self.cp_weights = np.ones(len(self.cp_temp))
-        self.cp_weights *= self.weight_parameter
+        self.cp_weights *= self.cp_weght
         self.weights = np.concatenate((self.dh_weights, self.cp_weights), axis=0)
         # self.weights = np.ones(len(self.temp) + len(self.cp_temp))
 
@@ -244,9 +254,9 @@ class WeightedJointLeastSquares(FitMethod):
                                                       np.concatenate((self.temp, self.cp_temp), axis=0),
                                                       np.concatenate((updated_experiment, updated_cp), axis=0),
                                                       self.params,
-                                                      sigma=self.weights, absolute_sigma=True)
+                                                      sigma=self.weights, absolute_sigma=False)
 
-        print(self.name, optimal_params)
+        # print(self.name, optimal_params)
 
         self.fit_coefficients = self.stationary_coefficients(optimal_params, t_ref, c_0, c_1)
         self.fit = self.dh_draw(self.fit_coefficients, self.data_frame.dh_t)
