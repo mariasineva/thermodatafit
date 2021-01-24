@@ -209,3 +209,36 @@ class WeightedСonstrainedLeastSquaresSM(FitMethod):
         print(np.dot(t_ref_array, self.fit_coefficients),
               np.dot(t_ref_diff_array, self.fit_coefficients[:len(t_ref_diff_array)]))
 
+
+class OrdinaryLeastSquaresSMminOne(FitMethod):
+    """Ordinary least squares fit for approximation up to given power. Basic method."""
+
+    def __init__(self, power):
+        self.power = power
+        self.name = "OLS -1 & sqrt (pow=%d)" % self.power
+
+    def fit(self, data_frame: DataFrame):
+        self.data_frame = data_frame
+
+        self.source_matrix = np.column_stack(
+            [data_frame.temperature ** i if i != 0 else np.ones(len(data_frame.temperature)) for i in range(-1, self.power + 1)])
+
+        self.source_matrix = np.column_stack((self.source_matrix, np.sqrt(data_frame.temperature)))
+
+        self.aux_fit = sm.OLS(data_frame.experiment, self.source_matrix).fit()
+
+        self.fit_coefficients = self.aux_fit.params
+        self.fit = np.dot(self.source_matrix, self.fit_coefficients)
+
+        self.heat_capacity_matrix = np.vstack([i * data_frame.temperature ** (i - 1) for i in (range(-1, self.power + 1))])
+        self.heat_capacity_matrix = np.vstack((self.heat_capacity_matrix, [(2*np.sqrt(data_frame.temperature))**(-1)])).T
+
+        self.fit_heat_capacity = np.dot(self.heat_capacity_matrix, self.fit_coefficients)
+
+    def calculate_refpoints(self):
+        t_ref_array = [1]
+        t_ref_array.extend([self.data_frame.reference_temperature ** i for i in range(1, self.power + 1)])
+        t_ref_diff_array = [self.data_frame.reference_temperature ** i for i in range(self.power)]
+        diff_coefficients = self.fit_coefficients[1:]
+        print(np.dot(t_ref_array, self.fit_coefficients), np.dot(t_ref_diff_array, diff_coefficients))
+

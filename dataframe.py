@@ -92,7 +92,6 @@ class SingleDataFrame:
         #todo дописать тут
 
         # is_not_outlier = [abs(res) < threshold for res in dffit]
-        #
         # self.temperature = self.temperature[is_not_outlier]
         # self.experiment = self.experiment[is_not_outlier]
 
@@ -125,7 +124,8 @@ class DataFrame:
         else:
             self.dh_t, self.dh_e = self.enthalpy_data.original_temperature, self.enthalpy_data.original_experiment
 
-    def set_initial_conditions(self, reference_temperature=298.15, reference_enthalpy_value=0.0, reference_heat_capacity_value=25.27,
+    def set_initial_conditions(self, reference_temperature=298.15, reference_enthalpy_value=0.0,
+                               reference_heat_capacity_value=25.27,
                                reference_heat_capacity_error=0.1, experiment_weight=0.01):
         """Set initial conditions for experimental data in this data frame."""
         self.reference_temperature = reference_temperature

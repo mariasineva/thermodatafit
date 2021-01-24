@@ -55,7 +55,7 @@ class FitMethod:
 
     def plot_heat_capacity_residuals(self, ax, **kwargs):
         """Plot standartised residuals using matplotlib."""
-        ax.scatter(self.cp_temp, self.heat_capacity_residuals, **kwargs)
+        ax.scatter(self.heat_capacity_temperature, self.heat_capacity_residuals, **kwargs)
 
     def plot_normality(self, ax, color, label):
         """qq normality test"""

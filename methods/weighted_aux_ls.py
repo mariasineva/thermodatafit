@@ -66,4 +66,3 @@ class WeightedLeastSquaresWithAuxiliaryFunction(FitMethod):
         cp_source_matrix = np.vstack([i * cp_temp ** (i - 1) for i in range(-1, 5)]).T
         fit_cp = np.dot(cp_source_matrix, self.original_fit_coefficients)
         return experiment_cp - fit_cp
-
