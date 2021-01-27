@@ -19,7 +19,7 @@ class EinsteinPlankMethod(FitMethod):
         self.params = self.initial_params
         self.bounds = self.initial_boundaries
 
-    def cp_cost(self, parameters, temperature, experiment):
+    def heat_capacity_cost(self, parameters, temperature, experiment):
         cp_calculated = 0.0
         for i in range(0, len(parameters), 2):
             alpha = parameters[i]
@@ -33,7 +33,7 @@ class EinsteinPlankMethod(FitMethod):
         return (cp_calculated * self.CONST_R - experiment) / experiment
         # return cp_calculated * self.CONST_R - experiment
 
-    def h_cost(self, parameters, temperature, experiment):
+    def enthalpy_cost(self, parameters, temperature, experiment):
         h_calculated = 0.0
 
         if len(parameters) % 2 != 0:
@@ -48,7 +48,7 @@ class EinsteinPlankMethod(FitMethod):
         h_calculated *= self.CONST_R
         return h_calculated - experiment
 
-    def cp_draw(self, parameters, temperature):
+    def heat_capacity(self, parameters, temperature):
         cp_calculated = 0.0
         for alpha, theta in zip(parameters[::2], parameters[1::2]):
             x = theta / temperature
@@ -56,7 +56,7 @@ class EinsteinPlankMethod(FitMethod):
             cp_calculated += 3 * alpha * ex * x * x / (ex - 1) ** 2
         return cp_calculated * self.CONST_R
 
-    def h_draw(self, parameters, temperature):
+    def enthalpy(self, parameters, temperature):
         h_calculated = 0.
         if len(parameters) % 2 != 0:
             print("Error!\n")
@@ -68,16 +68,15 @@ class EinsteinPlankMethod(FitMethod):
 
         return h_calculated * self.CONST_R
 
-    def dh_draw(self, parameters, temperature):
-        return self.h_draw(parameters, temperature) - self.h_draw(parameters, self.initial_temperature)
+    def delta_enthalpy(self, parameters, temperature):
+        return self.enthalpy(parameters, temperature) - self.enthalpy(parameters, self.initial_temperature)
 
-    def dh_cost(self, parameters, temperature, experiment):
-        # print(self.name, "\te_dh:\t", sum(
-        #     ((self.h_draw(parameters, temperature) - self.h_draw(parameters, 298.15) - experiment) / experiment) ** 2))
-        return (self.h_draw(parameters, temperature) - self.h_draw(parameters, 298.15) - experiment) / experiment
+    def delta_enthalpy_cost(self, parameters, temperature, experiment):
+        return (self.enthalpy(parameters, temperature) - self.enthalpy(parameters, 298.15) - experiment) / experiment
 
-    def cost_function(self, parameters, h_temp, h_experiment, cp_temp, cp_experiment):
-        dh, cp = self.dh_cost(parameters, h_temp, h_experiment), self.cp_cost(parameters, cp_temp, cp_experiment)
+    def joint_cost_function(self, parameters, h_temp, h_experiment, cp_temp, cp_experiment):
+        dh, cp = self.delta_enthalpy_cost(parameters, h_temp, h_experiment), \
+                 self.heat_capacity_cost(parameters, cp_temp, cp_experiment)
         return np.concatenate((dh, cp), axis=0)
 
 
@@ -111,14 +110,14 @@ class EinsteinPlankSum(EinsteinPlankMethod):
             self.bounds[1].append(1.0e5)
 
             if self.mode == 'j':
-                res_lsq = scipy_ls(self.cost_function, self.params, bounds=self.bounds,
+                res_lsq = scipy_ls(self.joint_cost_function, self.params, bounds=self.bounds,
                                    args=(self.data_frame.dh_t, self.data_frame.dh_e,
                                          self.data_frame.cp_t, self.data_frame.cp_e))
             elif self.mode == 'h':
-                res_lsq = scipy_ls(self.dh_cost, self.params, bounds=self.bounds,
+                res_lsq = scipy_ls(self.delta_enthalpy_cost, self.params, bounds=self.bounds,
                                    args=(self.data_frame.dh_t, self.data_frame.dh_e))
             elif self.mode == 'c':
-                res_lsq = scipy_ls(self.cp_cost, self.params, bounds=self.bounds,
+                res_lsq = scipy_ls(self.heat_capacity_cost, self.params, bounds=self.bounds,
                                    args=(self.data_frame.cp_t, self.data_frame.cp_e))
             else:
                 print('Wrong calculation type!')
@@ -160,27 +159,27 @@ class EinsteinPlankSum(EinsteinPlankMethod):
 
         self.approx()
 
-        self.temp = data_frame.dh_t
+        self.enthalpy_temperature = data_frame.dh_t
 
-        self.cp_temp = data_frame.cp_t
+        self.heat_capacity_temperature = data_frame.cp_t
 
-        self.fit = self.dh_draw(self.params, self.data_frame.dh_t)
+        self.fit_enthalpy = self.delta_enthalpy(self.params, self.data_frame.dh_t)
 
         if not len(self.data_frame.cp_t):
-            self.fit_derivative = self.cp_draw(self.params, self.data_frame.dh_t)
+            self.fit_heat_capacity = self.heat_capacity(self.params, self.data_frame.dh_t)
         else:
-            self.fit_derivative = self.cp_draw(self.params, self.cp_temp)
+            self.fit_heat_capacity = self.heat_capacity(self.params, self.heat_capacity_temperature)
 
     def compare_to_cp(self, hc_data):
         """Compare to cp"""
         experiment_cp = hc_data.experiment
         cp_temp = hc_data.temp
-        fit_cp = self.cp_draw(self.params, cp_temp)
+        fit_cp = self.heat_capacity(self.params, cp_temp)
         return experiment_cp - fit_cp
 
-    def calculate_residuals(self):
+    def calculate_enthalpy_residuals(self):
         # if self.mode == 'h':
-        self.residuals = (self.data_frame.dh_e - self.fit) / np.std(self.data_frame.dh_e - self.fit)
+        self.enthalpy_residuals = (self.data_frame.dh_e - self.fit_enthalpy) / np.std(self.data_frame.dh_e - self.fit_enthalpy)
         # elif self.mode == 'c':
         #     self.residuals = (self.data_frame.cp_e - self.fit_derivative) / \
         #                      np.std(self.data_frame.cp_e - self.fit_derivative)
@@ -190,22 +189,18 @@ class EinsteinPlankSum(EinsteinPlankMethod):
         #        (self.data_frame.cp_e - self.fit_derivative) / np.std(self.data_frame.cp_e - self.fit_derivative)),
         #        axis=0)
 
-    def calculate_derivative_residuals(self):
-        self.derivative_residuals = (self.data_frame.cp_e - self.fit_derivative) / \
-                                    np.std(self.data_frame.cp_e - self.fit_derivative)
+    def calculate_heat_capacity_residuals(self):
+        self.heat_capacity_residuals = (self.data_frame.cp_e - self.fit_heat_capacity) / \
+                                       np.std(self.data_frame.cp_e - self.fit_heat_capacity)
 
-    def plot_residuals(self, ax, **kwargs):
+    def plot_enthalpy_residuals(self, ax, **kwargs):
         """Plot standartised residuals using matplotlib."""
         # if self.mode == 'h':
-        ax.scatter(self.data_frame.dh_t, self.residuals, **kwargs)
+        ax.scatter(self.data_frame.dh_t, self.enthalpy_residuals, **kwargs)
         # elif self.mode == 'c':
         #     ax.scatter(self.data_frame.cp_t, self.residuals, **kwargs)
         # elif self.mode == 'j':
         #     ax.scatter(np.concatenate((self.data_frame.dh_t, self.data_frame.cp_t), axis=0), self.residuals, **kwargs)
-
-    # def plot_derivative(self, ax, **kwargs):
-    #     """Plot derivative of the fit result using matplotlib."""
-    #     ax.plot(self.temp, self.cp_draw(self.params, self.temp), **kwargs)
 
 
 class EinsteinPlankAndPolynom(FitMethod):
