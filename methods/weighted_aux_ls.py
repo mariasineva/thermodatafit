@@ -13,13 +13,13 @@ class WeightedLeastSquaresWithAuxiliaryFunction(FitMethod):
         self.name = "WLS Aux, (pow=%d)" % self.power
 
     def fit(self, data_frame: DataFrame):
-        self.temperature = data_frame.dh_t
+        self.enthalpy_temperature = data_frame.dh_t
         self.enthalpy_data = data_frame.dh_e
         self.heat_capacity_data = data_frame.cp_e
         self.data_frame = data_frame
 
         (self.aux_values, self.aux_weights) = auxiliary_function(data_frame)
-        self.aux_source_matrix = np.column_stack([self.temperature ** i for i in range(1, self.power + 1)])
+        self.aux_source_matrix = np.column_stack([self.enthalpy_temperature ** i for i in range(1, self.power + 1)])
         self.aux_source_matrix = sm.add_constant(self.aux_source_matrix)
 
         self.aux_fit = sm.WLS(self.aux_values, self.aux_source_matrix, weights=self.aux_weights).fit()
@@ -27,7 +27,7 @@ class WeightedLeastSquaresWithAuxiliaryFunction(FitMethod):
         self.aux_fit_coefficients = self.aux_fit.params
 
         self.source_matrix = np.vstack(
-            [self.temperature ** i if i != 0 else np.ones(len(self.temperature)) for i in range(-1, 5)]).T
+            [self.enthalpy_temperature ** i if i != 0 else np.ones(len(self.enthalpy_temperature)) for i in range(-1, 5)]).T
 
         original_fit_dict = calculate_original_fit(
             {power: self.aux_fit_coefficients[power] for power in range(0, len(self.aux_fit_coefficients))},
@@ -36,7 +36,7 @@ class WeightedLeastSquaresWithAuxiliaryFunction(FitMethod):
         self.original_fit_coefficients = [original_fit_dict[power] if power in original_fit_dict else 0.0 for power in
                                           range(-1, 5)]
 
-        self.fit = np.dot(self.source_matrix, self.original_fit_coefficients)
+        self.fit_enthalpy = np.dot(self.source_matrix, self.original_fit_coefficients)
 
         self.heat_capacity_matrix = np.vstack([i * data_frame.cp_t ** (i - 1) for i in range(-1, 5)]).T
         self.fit_heat_capacity = np.dot(self.heat_capacity_matrix, self.original_fit_coefficients)

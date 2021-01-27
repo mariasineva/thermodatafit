@@ -14,7 +14,7 @@ class FitMethod:
 
     def plot_enthalpy(self, ax, **kwargs):
         """Plot fit result using matplotlib."""
-        ax.plot(self.temperature, self.fit, **kwargs)
+        ax.plot(self.enthalpy_temperature, self.fit_enthalpy, **kwargs)
 
     def plot_heat_capacity(self, ax, **kwargs):
         """Plot heat capacity (derivative of the enthalpy fit result) using matplotlib."""
@@ -28,7 +28,7 @@ class FitMethod:
                 pass
 
     def calculate_enthalpy_residuals(self):
-        self.residuals = (self.enthalpy_data - self.fit) / np.std(self.enthalpy_data - self.fit)
+        self.enthalpy_residuals = (self.data_frame.dh_e - self.fit_enthalpy) / np.std(self.data_frame.dh_e - self.fit_enthalpy)
 
     def calculate_heat_capacity_residuals(self):
         pass
@@ -51,7 +51,7 @@ class FitMethod:
 
     def plot_enthalpy_residuals(self, ax, **kwargs):
         """Plot standartised residuals using matplotlib."""
-        ax.scatter(self.temperature, self.residuals, **kwargs)
+        ax.scatter(self.enthalpy_temperature, self.enthalpy_residuals, **kwargs)
 
     def plot_heat_capacity_residuals(self, ax, **kwargs):
         """Plot standartised residuals using matplotlib."""

@@ -13,7 +13,7 @@ def calculate_fits(methods, data):
 def calculate_residuals(methods):
     for method in methods:
         method.calculate_residuals()
-        method.calculate_derivative_residuals()
+        method.calculate_heat_capacity_residuals()
 
 
 source_data = [

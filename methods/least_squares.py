@@ -23,9 +23,9 @@ class OrdinaryLeastSquaresSM(FitMethod):
         self.source_matrix = np.column_stack(
             [self.temperature ** i if i != 0 else np.ones(len(self.temperature)) for i in range(0, self.power + 1)])
 
-        self.aux_fit = sm.OLS(self.enthalpy_data, self.source_matrix).fit()
+        self.ols_fit = sm.OLS(self.enthalpy_data, self.source_matrix).fit()
 
-        self.fit_coefficients = self.aux_fit.params
+        self.fit_coefficients = self.ols_fit.params
         self.fit = np.dot(self.source_matrix, self.fit_coefficients)
 
         self.heat_capacity_matrix = np.vstack([i * self.temperature ** (i - 1) for i in range(0, self.power + 1)]).T
@@ -53,8 +53,8 @@ class OrdinaryLeastSquaresSM(FitMethod):
                         xy=(np.sign(self.residuals[i]) * np.flip(qq.theoretical_quantiles, 0)[r], self.residuals[i]))
 
     def annotate_leverage(self, ax):
-        leverage = self.aux_fit.get_influence().hat_matrix_diag
-        cooks_distance = self.aux_fit.get_influence().cooks_distance[0]
+        leverage = self.ols_fit.get_influence().hat_matrix_diag
+        cooks_distance = self.ols_fit.get_influence().cooks_distance[0]
         leverage_top_3 = np.flip(np.argsort(cooks_distance), 0)[:3]
 
         for i in leverage_top_3:
@@ -62,7 +62,7 @@ class OrdinaryLeastSquaresSM(FitMethod):
 
     def annotate_cooks_distance(self, ax):
         influence = 4 / len(self.data_frame.temperature)
-        cooks_distance = self.aux_fit.get_influence().cooks_distance[0]
+        cooks_distance = self.ols_fit.get_influence().cooks_distance[0]
         leverage_top_3 = np.flip(np.argsort(cooks_distance), 0)[:3]
 
         for i, distance in enumerate(cooks_distance):
@@ -95,21 +95,21 @@ class СonstrainedLeastSquaresSM(FitMethod):
 
         self.data_frame = data_frame
 
-        self.temperature = data_frame.dh_t
+        self.enthalpy_temperature = data_frame.dh_t
         self.enthalpy_data = data_frame.dh_e
         self.heat_capacity_temperature = data_frame.cp_t
 
         t_ref = data_frame.reference_temperature
-        t_ref_vector = t_ref * np.ones(len(self.temperature))
+        t_ref_vector = t_ref * np.ones(len(self.enthalpy_temperature))
 
         c_0 = data_frame.reference_enthalpy_value
         c_1 = data_frame.reference_heat_capacity_value
 
-        updated_experiment = self.enthalpy_data - c_0 * np.ones(len(self.temperature)) - \
-                             c_1 * (self.temperature - t_ref_vector)
+        updated_experiment = self.enthalpy_data - c_0 * np.ones(len(self.enthalpy_temperature)) - \
+                             c_1 * (self.enthalpy_temperature - t_ref_vector)
 
         self.updated_matrix = np.column_stack(
-            [self.temperature ** i + (i - 1) * t_ref_vector ** i - i * self.temperature * t_ref_vector ** (i - 1) \
+            [self.enthalpy_temperature ** i + (i - 1) * t_ref_vector ** i - i * self.enthalpy_temperature * t_ref_vector ** (i - 1) \
              for i in range(self.min_power, self.max_power + 1) if i not in [0, 1]])
 
         self.initial_fit = sm.OLS(updated_experiment, self.updated_matrix).fit()
@@ -132,11 +132,10 @@ class СonstrainedLeastSquaresSM(FitMethod):
         self.fit_coefficients.extend(self.initial_coefficients[-self.min_power:])
 
         self.source_matrix = np.vstack(
-            [self.temperature ** i if i != 0 else np.ones(len(self.temperature)) for i in
+            [self.enthalpy_temperature ** i if i != 0 else np.ones(len(self.enthalpy_temperature)) for i in
              range(self.min_power, self.max_power + 1)]).T
 
-        self.fit = np.dot(self.source_matrix, self.fit_coefficients)
-        # todo all self fit to self fit enthalpy
+        self.fit_enthalpy = np.dot(self.source_matrix, self.fit_coefficients)
 
         self.heat_capacity_matrix = np.vstack(
             [i * self.heat_capacity_temperature ** (i - 1) for i in range(self.min_power, self.max_power + 1)]).T
