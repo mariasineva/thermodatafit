@@ -95,6 +95,14 @@ class SingleDataFrame:
         # self.temperature = self.temperature[is_not_outlier]
         # self.experiment = self.experiment[is_not_outlier]
 
+    def apply_filter(self, filter_mode, **kwargs):
+        {
+            'temperature': self.filter_by_temperature,
+            'cooks_distance': self.filter_outliers_by_cooks_distance,
+            'residual': self.filter_outliers_by_residual,
+            'dffits': self.filter_outliers_by_dffits
+        }[filter_mode](**kwargs)
+
     def plot(self, **kwargs):
         """Plot data using matplotlib."""
         plt.scatter(self.temperature, self.experiment, **kwargs)
@@ -133,5 +141,4 @@ class DataFrame:
         self.reference_heat_capacity_value = reference_heat_capacity_value
         self.reference_heat_capacity_error = reference_heat_capacity_error
         self.experiment_weight = experiment_weight
-
 

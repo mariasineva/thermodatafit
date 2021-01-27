@@ -6,6 +6,18 @@ import numpy as np
 from statsmodels.stats.outliers_influence import OLSInfluence
 
 
+def calculate_cp_difference(methods, hc_data):
+    print('Cp difference')
+    with open('report_cp.txt', 'w') as f:
+
+        for method in methods:
+            print('\n' + method.name)
+            f.write('\n' + method.name)
+            for item in method.compare_to_cp(hc_data):
+                f.write("%s\n" % item)
+            print(method.compare_to_cp(hc_data))
+
+
 class WeightedLeastSquares(FitMethod):
     """Weighted least squares fit for approximation up to given power."""
 
