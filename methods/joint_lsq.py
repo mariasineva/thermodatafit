@@ -244,13 +244,14 @@ class PlainJointLeastSquares(FitMethod):
 
         self.fit_coefficients = initial_fit.x.tolist()
 
-        self.enthalpy_fit = self.delta_enthalpy(self.fit_coefficients, self.enthalpy_temperature)
+        self.fit_enthalpy = self.delta_enthalpy(self.fit_coefficients, self.enthalpy_temperature)
 
         self.fit_heat_capacity = self.heat_capacity(self.fit_coefficients, self.data_frame.dh_t)
 
     def calculate_enthalpy_residuals(self):
         # if self.mode == 'h':
-        self.enthalpy_residuals = (self.data_frame.dh_e - self.enthalpy_fit) / np.std(self.data_frame.dh_e - self.enthalpy_fit)
+        self.enthalpy_residuals = (self.data_frame.dh_e - self.fit_enthalpy) / \
+                                  np.std(self.data_frame.dh_e - self.fit_enthalpy)
         # elif self.mode == 'c':
         #     self.residuals = (self.data_frame.cp_e - self.fit_derivative) / \
         #                      np.std(self.data_frame.cp_e - self.fit_derivative)
