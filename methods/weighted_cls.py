@@ -89,8 +89,6 @@ class WeightedJointLeastSquares(FitMethod):
 
     def delta_enthalpy_constrained_cost(self, parameters, temperature, experiment):
         '''Returns _constrained_ dH_calc - dH_exp'''
-        # residuals = self.dh_calc(parameters, temperature) - experiment
-        # renormalize cost
         residuals = (self.delta_enthalpy_initial_function(temperature, *parameters) - experiment) / experiment
         # print(self.name, "e_dh:", sum(residuals ** 2))
         return residuals
@@ -301,6 +299,13 @@ class WeightedJointLeastSquares(FitMethod):
 
         print('Finally:', self.name, self.fit_coefficients)
 
-    def calculate_derivative_residuals(self):
-        self.derivative_residuals = (self.data_frame.cp_e - self.heat_capacity(self.fit_coefficients, self.heat_capacity_temperature)) / \
-                                    np.std(self.data_frame.cp_e - self.heat_capacity(self.fit_coefficients, self.heat_capacity_temperature))
+    def calculate_heat_capacity_residuals(self):
+        self.heat_capacity_residuals = (self.data_frame.cp_e - self.heat_capacity(self.fit_coefficients,
+                                                                                  self.heat_capacity_temperature)) / \
+                                       np.std(self.data_frame.cp_e - self.heat_capacity(self.fit_coefficients,
+                                                                                        self.heat_capacity_temperature))
+
+    def calculate_enthalpy_residuals(self):
+        # if self.mode == 'h':
+        self.enthalpy_residuals = (self.data_frame.dh_e - self.fit_enthalpy) / \
+                                  np.std(self.data_frame.dh_e - self.fit_enthalpy)

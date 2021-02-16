@@ -78,7 +78,7 @@ class JointLeastSquares(FitMethod):
     def delta_enthalpy_constrained_cost(self, parameters, temperature, experiment):
         # renormalize cost
         residuals = (self.delta_enthalpy_initial_function(parameters, temperature) - experiment) / experiment
-        print(self.name, "e_dh:", sum(residuals ** 2))
+        # print(self.name, "e_dh:", sum(residuals ** 2))
         return residuals
 
     def heat_capacity_initial_function(self, parameters, temperature):
@@ -130,7 +130,8 @@ class JointLeastSquares(FitMethod):
         initial_fit = scipy_ls(self.heat_capacity_cost, self.params, args=(self.data_frame.cp_t, self.data_frame.cp_e))
 
         self.fit_coefficients = initial_fit.x.tolist()
-        self.fit_enthalpy = self.delta_enthalpy(self.fit_coefficients, self.data_frame.dh_t)
+        # self.fit_coefficients = self.stationary_coefficients(initial_fit.x.tolist(), t_ref, c_0, c_1)
+        self.fit_enthalpy = self.enthalpy(self.fit_coefficients, self.data_frame.dh_t)
         self.fit_heat_capacity = self.heat_capacity(self.fit_coefficients, self.data_frame.cp_t)
 
     def c_mode_constrained_approximation(self):

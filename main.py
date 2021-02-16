@@ -47,7 +47,7 @@ source_data = [
     ['allDataAlphadH', 'Ti_Alpha', 25.06, 'TiAlphaCp'],
     ['allDataBetadH', 'Ti_Beta', 25.06, 'TiBetaCp'],
     ['dataAu', 'Au', 25.27, 'AuCp'],
-    ['UO2dHall', 'UO2', 15.2008, 'UO2Cp3k'],
+    ['UO2dHall', 'UO2', 15.2008, 'UO2CpCut'],
     ['VdHlow', 'V', 24.48, 'VCp'],
 ]
 
@@ -61,19 +61,20 @@ if __name__ == '__main__':
     min_power = -1
     max_power = 2
     # for i in range(len(source_data)):
-    for i in [2]:
+    for i in [3]:
         fit_methods = [
             # wlsq.WeightedLeastSquaresWithAuxiliaryFunction(power=1),
             # lsq.СonstrainedLeastSquaresSM(min_power=-1, max_power=2),
-            nonlin.EinsteinPlankSum(3, mode='h'), nonlin.EinsteinPlankSum(3, mode='c'),
-            nonlin.EinsteinPlankSum(3, mode='j'),
-            JointLeastSquares(min_power=-1, max_power=3, mode='h'),
-            JointLeastSquares(min_power=-1, max_power=3, mode='c'),
-            # JointLeastSquares(min_power=-1, max_power=3, mode='cc'),
-            # JointLeastSquares(min_power=-1, max_power=3, mode='j'),
+            # nonlin.EinsteinPlankSum(3, mode='h'), nonlin.EinsteinPlankSum(3, mode='c'),
+            # nonlin.EinsteinPlankSum(3, mode='j'),
+            # JointLeastSquares(min_power=-1, max_power=3, mode='h'),
+            # JointLeastSquares(min_power=-1, max_power=3, mode='c'),
+            JointLeastSquares(min_power=-1, max_power=3, mode='cc'),
+            JointLeastSquares(min_power=-1, max_power=3, mode='j'),
             # wpls(min_power=-1, max_power=3),
-            # wjls(min_power=-1, max_power=3, mode='h'),
-            # wjls(min_power=-1, max_power=3, mode='c'),
+            wjls(min_power=-1, max_power=3, mode='j', weight_parameter=0.99),
+            wjls(min_power=-1, max_power=3, mode='j', weight_parameter=0.001),
+            # wjls(min_power=-1, max_power=3, mode='c', weight_parameter=0.99),
             # wjls(min_power=-1, max_power=3, mode='cc'),
         ]
         data_file, data_name, c_ref, hc_file_name = source_data[i]
@@ -86,7 +87,7 @@ if __name__ == '__main__':
                                           reference_heat_capacity_error=0.1,
                                           experiment_weight=0.01)
 
-        if hc_file_name != '':
+        if hc_file_name != '':  # todo this looks like a duplicate of some sort
             hc_data = SingleDataFrame(f'Data/{hc_file_name}.txt', name=data_name + 'Cp')
 
         calculate_fits(fit_methods, data_frame)
@@ -97,8 +98,8 @@ if __name__ == '__main__':
         # screen_type = 'bigscreen'
         draw.basic_plots(fit_methods, data_frame, show_plots, save_plots, comment, hc_data, screen_type)
         # draw.stats_plots(fit_methods, data_frame, show_plots, save_plots, comment, screen_type)
-# todo stat plots for dh & cp : qq; res vs fit 
-#         draw.dh_and_cp_plots(fit_methods, data_frame, hc_data, show_plots, save_plots, comment)
+        # todo stat plots for dh & cp : qq; res vs fit
+        # draw.dh_and_cp_plots(fit_methods, data_frame, hc_data, show_plots, save_plots, comment)
         # draw.mad_trash_save_all(fit_methods, data_frame, comment)
 
         # calculate_info(fit_methods)
