@@ -39,15 +39,17 @@ if __name__ == '__main__':
     # for i in range(len(source_data)):
     for i in [0]:
         fit_methods = [
-            # wjls(min_power=min_power, max_power=max_power, mode='j', weight_parameter=0.01),
+            wjls(min_power=min_power, max_power=max_power, mode='j', weight_parameter=0.01),
+            wjls(min_power=min_power, max_power=max_power, mode='h', weight_parameter=0.01),
+            wjls(min_power=min_power, max_power=max_power, mode='c', weight_parameter=0.01),
             # wjls(min_power=-1, max_power=2, mode='j', weight_parameter=0.1),
             # wjls(min_power=-1, max_power=2, mode='j', weight_parameter=0.5),
             # wjls(min_power=-1, max_power=3, mode='j', weight_parameter=0.9),
-            # wjls(min_power=min_power, max_power=max_power, mode='j', weight_parameter=0.99),
+            wjls(min_power=min_power, max_power=max_power, mode='j', weight_parameter=0.99),
             # wjls(min_power=-1, max_power=3, mode='j_relative_error'),
             JointLeastSquares(min_power=min_power, max_power=max_power, mode='h'),
-            # JointLeastSquares(min_power=min_power, max_power=max_power, mode='c'),
-            JointLeastSquares(min_power=min_power, max_power=max_power, mode='cc'),
+            JointLeastSquares(min_power=min_power, max_power=max_power, mode='c'),
+            # JointLeastSquares(min_power=min_power, max_power=max_power, mode='cc'),
         ]
         data_file, data_name, c_ref, hc_file_name = source_data[i]
         data_dict = {'dh': f'Data/{data_file}.txt'}
@@ -66,8 +68,8 @@ if __name__ == '__main__':
         #
         comment = ''
         # draw.basic_plots(fit_methods, data_frame, show_plots, save_plots, comment)
-        screen_type = 'laptop'
-        # screen_type = 'bigscreen'
+        # screen_type = 'laptop'
+        screen_type = 'bigscreen'
         calculate_residuals(fit_methods)
         draw.basic_plots(fit_methods, data_frame, show_plots, save_plots, comment, hc_data, screen_type)
         # draw.dh_and_cp_plots(fit_methods, data_frame, hc_data, show_plots, save_plots, comment)

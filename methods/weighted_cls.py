@@ -85,7 +85,8 @@ class WeightedJointLeastSquares(FitMethod):
     def delta_enthalpy_initial_function(self, temperature, *args):
         '''Calling previous function, this one gives _constrained_ H(T)-H(To)'''
         parameters = args
-        return self.enthalpy_initial_function(parameters, temperature) - self.enthalpy_initial_function(parameters, self.data_frame.reference_temperature)
+        return self.enthalpy_initial_function(parameters, temperature) - \
+               self.enthalpy_initial_function(parameters, self.data_frame.reference_temperature)
 
     def delta_enthalpy_constrained_cost(self, parameters, temperature, experiment):
         '''Returns _constrained_ dH_calc - dH_exp'''
@@ -185,8 +186,8 @@ class WeightedJointLeastSquares(FitMethod):
         t_ref = self.data_frame.reference_temperature
         t_ref_vector = t_ref * np.ones(len(self.enthalpy_temperature))
 
-        c_0 = self.data_frame.reference_value
-        c_1 = self.data_frame.reference_cvalue
+        c_0 = self.data_frame.reference_enthalpy_value
+        c_1 = self.data_frame.reference_heat_capacity_value
 
         updated_experiment = self.enthalpy_data - c_0 * np.ones(len(self.enthalpy_temperature)) - c_1 * (self.enthalpy_temperature - t_ref_vector)
 
@@ -216,17 +217,23 @@ class WeightedJointLeastSquares(FitMethod):
         zero_power_index = -self.min_power
         self.fit_coefficients[zero_power_index] += \
             self.data_frame.reference_enthalpy_value \
-            - self.delta_enthalpy(self.fit_coefficients, self.data_frame.reference_temperature)
+            - self.enthalpy(self.fit_coefficients, self.data_frame.reference_temperature)
 
         self.fit_enthalpy = self.delta_enthalpy(self.fit_coefficients, self.data_frame.dh_t)
         self.fit_heat_capacity = self.heat_capacity(self.fit_coefficients, self.data_frame.cp_t)
 
     def c_mode_constrained_approximation(self):
         #todo change to appr, add another named unconstrained
-        self.params = np.ones(self.max_power - self.min_power + 1)
-        aux_fit = scipy_ls(self.heat_capacity_cost, self.params, args=(self.data_frame.cp_t, self.data_frame.cp_e))
+        t_ref = self.data_frame.reference_temperature
 
-        self.fit_coefficients = aux_fit.x.tolist()
+        c_0 = self.data_frame.reference_enthalpy_value
+        c_1 = self.data_frame.reference_heat_capacity_value
+
+        updated_cp = self.data_frame.cp_e - c_1 * np.ones(len(self.heat_capacity_temperature))
+
+        initial_fit = scipy_ls(self.heat_capacity_constrained_cost, self.params, args=(self.data_frame.cp_t, updated_cp))
+
+        self.fit_coefficients = self.stationary_coefficients(initial_fit.x.tolist(), t_ref, c_0, c_1)
         self.fit_enthalpy = self.delta_enthalpy(self.fit_coefficients, self.data_frame.dh_t)
         self.fit_heat_capacity = self.heat_capacity(self.fit_coefficients, self.data_frame.cp_t)
 
