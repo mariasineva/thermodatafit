@@ -1,13 +1,13 @@
 from dataframe import DataFrame, SingleDataFrame
-import methods.least_squares as lsq
-import methods.weighted_aux_ls as wlsq
-import methods.non_linear as nonlin
-from methods.joint_lsq import JointLeastSquares, PlainJointLeastSquares
+import methods.LS_constrained as lsq
+import methods.LS_weighted_aux as wlsq
+import methods.einstein_planck as nonlin
+from methods.LS_joint import JointLeastSquares
 import matplotlib.pyplot as plt
 from statsmodels.stats.diagnostic import kstest_normal
 import methods.plots as draw
 # from methods.weighted_cls import WPlainLeastSquares as wpls
-from methods.weighted_cls import WeightedJointLeastSquares as wjls
+from methods.LS_constrained_weighted import WeightedJointLeastSquares as wjls
 
 
 def calculate_fits(methods, data):
@@ -63,17 +63,17 @@ if __name__ == '__main__':
     # for i in range(len(source_data)):
     for i in [3]:
         fit_methods = [
-            # wlsq.WeightedLeastSquaresWithAuxiliaryFunction(power=1),
-            # lsq.СonstrainedLeastSquaresSM(min_power=-1, max_power=2),
-            # nonlin.EinsteinPlankSum(3, mode='h'), nonlin.EinsteinPlankSum(3, mode='c'),
-            # nonlin.EinsteinPlankSum(3, mode='j'),
-            # JointLeastSquares(min_power=-1, max_power=3, mode='h'),
+            wlsq.WeightedLeastSquaresWithAuxiliaryFunction(power=1),
+            lsq.СonstrainedLeastSquaresSM(min_power=-1, max_power=2),
+            nonlin.EinsteinPlankSum(3, mode='h'), nonlin.EinsteinPlankSum(3, mode='c'),
+            nonlin.EinsteinPlankSum(3, mode='j'),
+            JointLeastSquares(min_power=-1, max_power=3, mode='h'),
             # JointLeastSquares(min_power=-1, max_power=3, mode='c'),
-            JointLeastSquares(min_power=-1, max_power=3, mode='cc'),
-            JointLeastSquares(min_power=-1, max_power=3, mode='j'),
+            # JointLeastSquares(min_power=-1, max_power=3, mode='cc'),
+            # JointLeastSquares(min_power=-1, max_power=3, mode='j'),
             # wpls(min_power=-1, max_power=3),
-            wjls(min_power=-1, max_power=3, mode='j', weight_parameter=0.99),
-            wjls(min_power=-1, max_power=3, mode='j', weight_parameter=0.001),
+            # wjls(min_power=-1, max_power=3, mode='j', weight_parameter=0.99),
+            # wjls(min_power=-1, max_power=3, mode='j', weight_parameter=0.001),
             # wjls(min_power=-1, max_power=3, mode='c', weight_parameter=0.99),
             # wjls(min_power=-1, max_power=3, mode='cc'),
         ]

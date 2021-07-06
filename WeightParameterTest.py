@@ -1,8 +1,8 @@
 from dataframe import DataFrame, SingleDataFrame
-import methods.non_linear as nonlin
+import methods.einstein_planck as nonlin
 import methods.plots as draw
-from methods.weighted_cls import WeightedJointLeastSquares as wjls
-from methods.joint_lsq import JointLeastSquares, PlainJointLeastSquares
+from methods.LS_constrained_weighted import WeightedJointLeastSquares as wjls
+from methods.LS_joint import JointLeastSquares, PlainJointLeastSquares
 
 
 def calculate_fits(methods, data):
