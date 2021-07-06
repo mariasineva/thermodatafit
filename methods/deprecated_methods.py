@@ -1,5 +1,5 @@
 from dataframe import DataFrame
-from methods.auxiliary_function import auxiliary_function, calculate_original_fit
+from methods.auxiliary_function import auxiliary_function
 from methods.fit_method import FitMethod
 import statsmodels.api as sm
 import numpy as np
