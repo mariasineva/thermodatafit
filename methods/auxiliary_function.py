@@ -10,8 +10,8 @@ def auxiliary_function(data_frame: DataFrame):
 
     Returns:
         (np.array, np.array): first array is auxiliary function values and seconds is their weights."""
-    c_zero = data_frame.reference_cvalue
-    is_weight_calculated = data_frame.experiment_weight > 0 or data_frame.reference_cerror > 0
+    c_zero = data_frame.reference_heat_capacity_value
+    is_weight_calculated = data_frame.experiment_weight > 0 or data_frame.reference_heat_capacity_error > 0
 
     aux_values = []
     aux_weights = []
@@ -23,7 +23,7 @@ def auxiliary_function(data_frame: DataFrame):
 
         if is_weight_calculated:
             aux_weights.append(((t_exp / dt ** 2) * (
-                    dh_exp * data_frame.experiment_weight + dt * data_frame.reference_cerror)) ** -2)
+                    dh_exp * data_frame.experiment_weight + dt * data_frame.reference_heat_capacity_error)) ** -2)
         else:
             aux_weights.append(10 ** -5)
 
@@ -45,13 +45,16 @@ def calculate_original_fit(aux_fit, t_ref, c_zero):
     # result: -1 0 1 2 3 4 5
     #          c d a b e f g
 
-    # g = E                                                                                       = 0;
-    # f = D - 2 * g * t                                                                           = D;
-    # e = C - 2 * f * t - 3 * g * t * t                                                           = C - 2 * D * t;
-    # c = A * t ** 2                                                                              = A * t ** 2;
-    # b = B - 2 * e * t - 3 * f * t ** 2 - 4 * g * t ** 3                                         = B - 2 * C * t + D * t ** 2;
-    # a = c_zero - 2 * b * t + A - 3 * e * t ** 2 - 4 * f * t ** 3 - 5 * g * t ** 4               = c_zero + A - 2 * b * t - 3 * e * t ** 2 - 4 * D * t ** 3;
-    # d = -c_zero * t - 2 * A * t + b * t ** 2 + 2 * e * t ** 3 + 3 * f * t ** 4 + 4 * g * t ** 5 = -(2 * A + c_zero) * t + b * t ** 2 + 2 * e * t ** 3 + 3 * D * t ** 4;
+    # g = E                             = 0;
+    # f = D - 2 * g * t                 = D;
+    # e = C - 2 * f * t - 3 * g * t * t = C - 2 * D * t;
+    # c = A * t ** 2                    = A * t ** 2;
+    # b = B - 2 * e * t - 3 * f * t ** 2 - 4 * g * t ** 3
+    #   = B - 2 * C * t + D * t ** 2;
+    # a = c_zero - 2 * b * t + A - 3 * e * t ** 2 - 4 * f * t ** 3 - 5 * g * t ** 4
+    #   = c_zero + A - 2 * b * t - 3 * e * t ** 2 - 4 * D * t ** 3;
+    # d = -c_zero * t - 2 * A * t + b * t ** 2 + 2 * e * t ** 3 + 3 * f * t ** 4 + 4 * g * t ** 5
+    #   = -(2 * A + c_zero) * t + b * t ** 2 + 2 * e * t ** 3 + 3 * D * t ** 4;
 
     (A, B, C, D, E) = [aux_fit[power] if power in aux_fit else 0.0 for power in range(0, 5)]
     result_fit = {power: 0.0 for power in range(-1, 5)}
@@ -67,5 +70,5 @@ def calculate_original_fit(aux_fit, t_ref, c_zero):
     return result_fit
 
 
-def cost_function_lad(params, matrix, expdata):
-    return np.sum(np.abs(expdata - matrix.dot(params)))
+def cost_function_least_abs_dev(params, matrix, experiment_data):
+    return np.sum(np.abs(experiment_data - matrix.dot(params)))

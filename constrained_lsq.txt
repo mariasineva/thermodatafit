@@ -1,0 +1,64 @@
+x_1 ... x_n
+y_1 ... y_n
+
+> Y ~ 1, x, x^2, ..., x^n
+
+y(x) = a_0 + a_1 x + ... + a_n x^n
+y(x_ref)  = c_0
+y'(x_ref) = c_1
+
+a_0 +   a_1 x_ref + ... +   a_n x_ref^n = c_0
+a_1 + 2 a_2 x_ref + ... + n a_n x_ref^(n - 1) = c_1
+
+a_0 = c_0 - (a_1 x_ref + ... +   a_n x_ref^n)
+a_1 = c_1 - (2 a_2 x_ref + ... + n a_n x_ref^(n - 1))
+
+y(x) = a_0 +   a_1 x + ... +   a_n x^n
+y(x) = c_0 + a_1 (x - x_ref) + ... + a_n (x^n - x_ref^n)
+y(x) = c_0 + c_1 (x - x_ref) + a_2 (x^2 - x_ref^2 - 2 x_ref) ... + a_n (x^n - x_ref^n - n x_ref^(n - 1))
+
+y(x) - c_0 - c_1 (x - x_ref) = a_2 (x^2 - x_ref^2 - 2 x_ref) ... + a_n (x^n - x_ref^n - n x_ref^(n - 1))
+
+> Y - c_0 - c_1 (X - x_ref) ~ (x^2 - x_ref^2 - 2 x_ref), ..., (x^n - x_ref^n - n x_ref^(n - 1))
+
+temp -> [temp**i for i in range(0, 4)]
+
+t_ref_vector = t_ref * np.ones(len(temp))
+experiment -> experiment - c_0 * np.ones(len(temp)) - c_1 (temp - t_ref_vector)
+temp -> [temp**i - t_ref_vector**i - i * t_ref_vector**(i - 1) for i in range(2, 4)]
+
+fit new experiment on new temp
+|
+V
+(a_2 ... a_n)
+|
+V
+(a_0, a_1, a_2 ... a_n)
+a_0 = c_0 - (a_1 x_ref + ... +   a_n x_ref^n)
+a_1 = c_1 - (2 a_2 x_ref + ... + n a_n x_ref^(n - 1))
+
+
+
+y -> y - c_0 - c_1 (x - x_ref)
+
+1   x_1 x_1^2 x_1^3   a_0   y_1
+1   x_2 x_2^2 x_2^3 . a_1 = y_2
+... ... ...   ...     a_2   ...
+1   x_n x_n^2 x_n^3   a_3   y_n
+
+x_1^2 - x_ref^2 - 2 x_ref, x_1^3 - x_ref^3 - 3 x_ref^2         y_1 - c_0 - c_1 (x_1 - x_ref)
+x_2^2 - x_ref^2 - 2 x_ref, x_2^3 - x_ref^3 - 3 x_ref^2 . a_2 = y_2 - c_0 - c_1 (x_2 - x_ref)
+...                        ...                           a_3   ...
+x_n^2 - x_ref^2 - 2 x_ref, x_n^3 - x_ref^3 - 3 x_ref^2         y_n - c_0 - c_1 (x_n - x_ref)
+
+
+
+y(x) = a_(-1)/x + a_0 + a_1 x + ... + a_n x^n
+y'(x) = -a_(-1)/(x^2) + a_1 + a_2 x + ... + n * a_n x^(n-1)
+y(x_ref)  = c_0
+y'(x_ref) = c_1
+
+a_1 + 2 a_2 x_ref + ... + n a_n x_ref^(n - 1) = c_1
+a_1 = c_1 -  2 a_2 x_ref - ... - n a_n x_ref^(n - 1)
+y'(x) = c_1 -  2 a_2 x_ref - ... - n a_n x_ref^(n - 1) + a_2 x + ... + n * a_n x^(n-1)
+y'(x) - c_1 = 2*a_2(x-x_ref) + 3*a_3(x^2-x_ref^2) + ... n * a_n(x^(n-1)-x_ref^(n - 1))

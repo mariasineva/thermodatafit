@@ -11,93 +11,101 @@ class SingleDataFrame:
 
         data_set = np.loadtxt(filename, dtype=[('temp', 'f8'), ('experiment', 'f8')])
         np.sort(data_set, order='temp')
-        self.original_temp = data_set['temp']
+        self.original_temperature = data_set['temp']
         self.original_experiment = data_set['experiment']
 
         self.set_initial_conditions()
         self.reset_filters()
         # self.type
 
-    def set_initial_conditions(self, reference_temperature=298.15, reference_value=0.0, reference_cvalue=25.27,
-                               reference_cerror=0.1, experiment_weight=0.01):
+    def set_initial_conditions(self, reference_temperature=298.15, reference_enthalpy_value=0.0, 
+                               reference_heat_capacity_value=25.27,
+                               reference_heat_capacity_error=0.1, experiment_weight=0.01):
         """Set initial conditions for experimental data in this data frame."""
         self.reference_temperature = reference_temperature
-        self.reference_value = reference_value
-        self.reference_cvalue = reference_cvalue
-        self.reference_cerror = reference_cerror
+        self.reference_enthalpy_value = reference_enthalpy_value
+        self.reference_heat_capacity_value = reference_heat_capacity_value
+        self.reference_heat_capacity_error = reference_heat_capacity_error
         self.experiment_weight = experiment_weight
 
     def reset_filters(self):
-        self.temp = copy.deepcopy(self.original_temp)
+        self.temperature = copy.deepcopy(self.original_temperature)
         self.experiment = copy.deepcopy(self.original_experiment)
 
     def filter_by_temperature(self, min_temperature, max_temperature):
-        min_index = np.searchsorted(self.temp, min_temperature)
-        max_index = np.searchsorted(self.temp, max_temperature)
-        self.temp = self.temp[min_index:max_index]
+        min_index = np.searchsorted(self.temperature, min_temperature)
+        max_index = np.searchsorted(self.temperature, max_temperature)
+        self.temperature = self.temperature[min_index:max_index]
         self.experiment = self.experiment[min_index:max_index]
 
     def filter_outliers_by_cooks_distance(self, power=3):
         source_matrix = np.column_stack(
-            [self.temp ** i if i != 0 else np.ones(len(self.temp)) for i in range(0, power + 1)])
-        aux_fit = sm.OLS(self.experiment, source_matrix).fit()
-        influence = 4 / len(self.temp)
-        cooks_distance = aux_fit.get_influence().cooks_distance[0]
+            [self.temperature ** i if i != 0 else np.ones(len(self.temperature)) for i in range(0, power + 1)])
+        ols_fit = sm.OLS(self.experiment, source_matrix).fit()
+        influence = 4 / len(self.temperature)
+        cooks_distance = ols_fit.get_influence().cooks_distance[0]
         is_not_outlier = [distance < influence for distance in cooks_distance]
 
         is_outlier = [distance > influence for distance in cooks_distance]
-        print('Log:\n', cooks_distance[is_outlier], '\n', self.temp[is_outlier], '\n')
+        print('Log:\n', cooks_distance[is_outlier], '\n', self.temperature[is_outlier], '\n')
 
-        self.temp = self.temp[is_not_outlier]
+        self.temperature = self.temperature[is_not_outlier]
         self.experiment = self.experiment[is_not_outlier]
 
     def filter_outliers_by_residual(self, threshold=3.0, power=3):
         source_matrix = np.column_stack(
-            [self.temp ** i if i != 0 else np.ones(len(self.temp)) for i in range(-1, power + 1)])
-        aux_fit = sm.OLS(self.experiment, source_matrix).fit()
-        fit = np.dot(source_matrix, aux_fit.params)
+            [self.temperature ** i if i != 0 else np.ones(len(self.temperature)) for i in range(-1, power + 1)])
+        ols_fit = sm.OLS(self.experiment, source_matrix).fit()
+        fit = np.dot(source_matrix, ols_fit.params)
 
         residuals = (self.experiment - fit) / np.std(self.experiment - fit)
 
         is_not_outlier = [abs(res) < threshold for res in residuals]
         is_outlier = [abs(res) >= threshold for res in residuals]
 
-        print('Log:\n', residuals[is_outlier], '\n', self.temp[is_outlier], '\n')
-        self.temp = self.temp[is_not_outlier]
+        print('Log:\n', residuals[is_outlier], '\n', self.temperature[is_outlier], '\n')
+        self.temperature = self.temperature[is_not_outlier]
         self.experiment = self.experiment[is_not_outlier]
 
     def filter_outliers_by_dffits(self, power=3):
 
-        threshold = 2 * np.sqrt(4 / len(self.temp))
+        threshold = 2 * np.sqrt(4 / len(self.temperature))
         source_matrix = np.column_stack(
-            [self.temp ** i if i != 0 else np.ones(len(self.temp)) for i in range(-1, power + 1)])
-        aux_fit = sm.OLS(self.experiment, source_matrix).fit()
+            [self.temperature ** i if i != 0 else np.ones(len(self.temperature)) for i in range(-1, power + 1)])
+        ols_fit = sm.OLS(self.experiment, source_matrix).fit()
 
-        dffit = aux_fit.get_influence().dffits[0]
+        dffit = ols_fit.get_influence().dffits[0]
 
         is_not_outlier = [abs(res) < threshold for res in dffit]
 
-        self.temp = self.temp[is_not_outlier]
+        self.temperature = self.temperature[is_not_outlier]
         self.experiment = self.experiment[is_not_outlier]
 
     def filter_outliers_by_hats(self, power=3):
 
-        threshold = 2 * np.sqrt(4 / len(self.temp))
+        threshold = 2 * np.sqrt(4 / len(self.temperature))
         source_matrix = np.column_stack(
-            [self.temp ** i if i != 0 else np.ones(len(self.temp)) for i in range(-1, power + 1)])
-        aux_fit = sm.OLS(self.experiment, source_matrix).fit()
+            [self.temperature ** i if i != 0 else np.ones(len(self.temperature)) for i in range(-1, power + 1)])
+        ols_fit = sm.OLS(self.experiment, source_matrix).fit()
 
-        hats = aux_fit.get_influence().hat_matrix_diag[0]
+        hats = ols_fit.get_influence().hat_matrix_diag[0]
         #todo дописать тут
 
         # is_not_outlier = [abs(res) < threshold for res in dffit]
-        #
-        # self.temp = self.temp[is_not_outlier]
+        # self.temperature = self.temperature[is_not_outlier]
         # self.experiment = self.experiment[is_not_outlier]
+
+    def apply_filter(self, filter_mode, **kwargs):
+        {
+            'temperature': self.filter_by_temperature,
+            'cooks_distance': self.filter_outliers_by_cooks_distance,
+            'residual': self.filter_outliers_by_residual,
+            'dffits': self.filter_outliers_by_dffits
+        }[filter_mode](**kwargs)
 
     def plot(self, **kwargs):
         """Plot data using matplotlib."""
-        plt.scatter(self.temp, self.experiment, **kwargs)
+        plt.scatter(self.temperature, self.experiment, **kwargs)
 
 
 class DataFrame:
@@ -108,30 +116,29 @@ class DataFrame:
         self.set_initial_conditions()
 
         try:
-            self.cp_data = SingleDataFrame(sources['cp'], self.name)
+            self.heat_capacity_data = SingleDataFrame(sources['cp'], self.name)
 
         except KeyError as no_cp_key:
             print('No heat capacity data! ', no_cp_key)
             self.cp_t, self.cp_e = [], []
         else:
-            # self.cp_data.filter_by_temperature(300, 3000)  # todo покаяться и устранить
-            self.cp_t, self.cp_e = self.cp_data.temp, self.cp_data.experiment
+            self.cp_t, self.cp_e = self.heat_capacity_data.temperature, self.heat_capacity_data.experiment
 
         try:
-            self.dh_data = SingleDataFrame(sources['dh'], self.name)
+            self.enthalpy_data = SingleDataFrame(sources['dh'], self.name)
         except KeyError as no_dh_key:
             print('No enthalpy data! ', no_dh_key)
             self.dh_t, self.dh_e = [], []
         else:
-            self.dh_t, self.dh_e = self.dh_data.original_temp, self.dh_data.original_experiment
+            self.dh_t, self.dh_e = self.enthalpy_data.original_temperature, self.enthalpy_data.original_experiment
 
-    def set_initial_conditions(self, reference_temperature=298.15, reference_value=0.0, reference_cvalue=25.27,
-                               reference_cerror=0.1, experiment_weight=0.01):
+    def set_initial_conditions(self, reference_temperature=298.15, reference_enthalpy_value=0.0,
+                               reference_heat_capacity_value=25.27,
+                               reference_heat_capacity_error=0.1, experiment_weight=0.01):
         """Set initial conditions for experimental data in this data frame."""
         self.reference_temperature = reference_temperature
-        self.reference_value = reference_value
-        self.reference_cvalue = reference_cvalue
-        self.reference_cerror = reference_cerror
+        self.reference_enthalpy_value = reference_enthalpy_value
+        self.reference_heat_capacity_value = reference_heat_capacity_value
+        self.reference_heat_capacity_error = reference_heat_capacity_error
         self.experiment_weight = experiment_weight
-
 
