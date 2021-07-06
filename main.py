@@ -3,8 +3,6 @@ import methods.LS_constrained as lsq
 import methods.LS_weighted_aux as wlsq
 import methods.einstein_planck as nonlin
 from methods.LS_joint import JointLeastSquares
-import matplotlib.pyplot as plt
-from statsmodels.stats.diagnostic import kstest_normal
 import methods.plots as draw
 # from methods.weighted_cls import WPlainLeastSquares as wpls
 from methods.LS_constrained_weighted import WeightedJointLeastSquares as wjls
@@ -33,17 +31,7 @@ def calculate_info(methods):
         method.get_deviations()
 
 
-def test_residuals_normality(methods):
-    threshold_p = 0.05
-
-    print("> Kolmogorov-Smirnov test")
-    for method in methods:
-        ksstat, pvalue = kstest_normal(method.residuals, dist='norm', pvalmethod='table')
-        print(f"{method.name}: ks={ksstat}, p={pvalue}. {'❌' if pvalue < threshold_p else '✅'}.")
-
-
 source_data = [
-    # ['TuFr', 'W', 24.3068],
     ['allDataAlphadH', 'Ti_Alpha', 25.06, 'TiAlphaCp'],
     ['allDataBetadH', 'Ti_Beta', 25.06, 'TiBetaCp'],
     ['dataAu', 'Au', 25.27, 'AuCp'],
@@ -73,8 +61,6 @@ if __name__ == '__main__':
             # JointLeastSquares(min_power=-1, max_power=3, mode='j'),
             # wpls(min_power=-1, max_power=3),
             # wjls(min_power=-1, max_power=3, mode='j', weight_parameter=0.99),
-            # wjls(min_power=-1, max_power=3, mode='j', weight_parameter=0.001),
-            # wjls(min_power=-1, max_power=3, mode='c', weight_parameter=0.99),
             # wjls(min_power=-1, max_power=3, mode='cc'),
         ]
         data_file, data_name, c_ref, hc_file_name = source_data[i]
@@ -103,4 +89,3 @@ if __name__ == '__main__':
         # draw.mad_trash_save_all(fit_methods, data_frame, comment)
 
         # calculate_info(fit_methods)
-        # calculate_cp_difference(fit_methods, hc_data)

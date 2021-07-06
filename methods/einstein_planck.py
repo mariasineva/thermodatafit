@@ -1,10 +1,8 @@
 from dataframe import DataFrame
 from methods.fit_method import FitMethod
 import numpy as np
-import scipy as sp
 from scipy.optimize import least_squares as scipy_ls
 from scipy.optimize import curve_fit
-import matplotlib.pyplot as plt
 from scipy.stats import t as students_t
 
 
@@ -28,10 +26,7 @@ class EinsteinPlankMethod(FitMethod):
             ex = np.exp(x)
             cp_calculated += 3 * alpha * ex * x * x / (ex - 1) ** 2
 
-        # print(self.name, "\te_cp:\t", sum(
-        #     ((self.cp_draw(parameters, temperature) - experiment) / experiment) ** 2))
         return (cp_calculated * self.CONST_R - experiment) / experiment
-        # return cp_calculated * self.CONST_R - experiment
 
     def enthalpy_cost(self, parameters, temperature, experiment):
         h_calculated = 0.0

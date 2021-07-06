@@ -4,6 +4,16 @@ from methods.fit_method import FitMethod
 import statsmodels.api as sm
 import numpy as np
 from statsmodels.stats.outliers_influence import OLSInfluence
+from statsmodels.stats.diagnostic import kstest_normal
+
+
+def test_residuals_normality(methods):
+    threshold_p = 0.05
+
+    print("> Kolmogorov-Smirnov test")
+    for method in methods:
+        ksstat, pvalue = kstest_normal(method.residuals, dist='norm', pvalmethod='table')
+        print(f"{method.name}: ks={ksstat}, p={pvalue}. {'❌' if pvalue < threshold_p else '✅'}.")
 
 
 def calculate_cp_difference(methods, hc_data):
