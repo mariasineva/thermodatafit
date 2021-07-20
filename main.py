@@ -49,7 +49,7 @@ if __name__ == '__main__':
     min_power = -1
     max_power = 2
     # for i in range(len(source_data)):
-    for i in [3]:
+    for i in [2]:
         fit_methods = [
             wlsq.WeightedLeastSquaresWithAuxiliaryFunction(power=1),
             lsq.СonstrainedLeastSquaresSM(min_power=-1, max_power=2),
@@ -68,13 +68,15 @@ if __name__ == '__main__':
 
         if hc_file_name != '':
             data_dict['cp'] = f'Data/{hc_file_name}.txt'
-        data_frame = DataFrame(data_dict, name=data_name)
+        data_frame = DataFrame.from_sources_dict(data_dict, name=data_name)
+        # read data from json
+        # data_frame = DataFrame.from_json_file(f'Data/au_data.json')
         data_frame.set_initial_conditions(reference_temperature=298.15, reference_heat_capacity_value=c_ref,
                                           reference_heat_capacity_error=0.1,
                                           experiment_weight=0.01)
 
         if hc_file_name != '':  # todo this looks like a duplicate of some sort
-            hc_data = SingleDataFrame(f'Data/{hc_file_name}.txt', name=data_name + 'Cp')
+            hc_data = SingleDataFrame.from_txt_file(f'Data/{hc_file_name}.txt', data_type='cp', name=data_name + 'Cp')
 
         calculate_fits(fit_methods, data_frame)
         calculate_residuals(fit_methods)
