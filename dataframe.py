@@ -8,11 +8,8 @@ import statsmodels.api as sm
 class SingleDataFrame:
     """Data frame for a single experiment."""
 
-    def __init__(self, data_set: np.ndarray, data_type: str, source_name: str = "Unnamed data set", year: int = 0,
-                 reference_temperature: float = 298.15, reference_enthalpy_value: float = 0.0,
-                 reference_heat_capacity_value: float = 25.27, reference_heat_capacity_error: float = 0.1,
-                 experiment_weight: float = 0.01):
-        # TODO(mariasineva): проверять, что в датасете есть поля temperature и experiment и они одинаковой длины.
+    def __init__(self, data_set: np.ndarray, data_type: str, source_name: str = "Unnamed data set", year: int = 0):
+        # todo: проверять, что в датасете есть поля temperature и experiment и они одинаковой длины.
         self.data_set = data_set
         self.original_temperature = data_set["temperature"]
         self.original_experiment = data_set["experiment"]
@@ -22,11 +19,6 @@ class SingleDataFrame:
         self.data_type = data_type
         self.source_name = source_name
         self.year = year
-        self.reference_temperature = reference_temperature
-        self.reference_enthalpy_value = reference_enthalpy_value
-        self.reference_heat_capacity_value = reference_heat_capacity_value
-        self.reference_heat_capacity_error = reference_heat_capacity_error
-        self.experiment_weight = experiment_weight
 
     @staticmethod
     def from_txt_file(filename: str, data_type: str, name: str = "Unnamed data set"):
@@ -35,16 +27,6 @@ class SingleDataFrame:
         np.sort(data_set, order="temperature")
 
         return SingleDataFrame(data_set, data_type=data_type, source_name=name)
-
-    def set_initial_conditions(self, reference_temperature=298.15, reference_enthalpy_value=0.0,
-                               reference_heat_capacity_value=25.27,
-                               reference_heat_capacity_error=0.1, experiment_weight=0.01):
-        """Set initial conditions for experimental data in this data frame."""
-        self.reference_temperature = reference_temperature
-        self.reference_enthalpy_value = reference_enthalpy_value
-        self.reference_heat_capacity_value = reference_heat_capacity_value
-        self.reference_heat_capacity_error = reference_heat_capacity_error
-        self.experiment_weight = experiment_weight
 
     def reset_filters(self):
         self.temperature = copy.deepcopy(self.original_temperature)
@@ -167,17 +149,9 @@ class DataFrame:
                         np.array(data_source["temperature"], dtype=[("temperature", np.float64)]),
                         np.array(data_source[data_source["data_type"]], dtype=[("experiment", np.float64)])
                     ),
-                    usemask=False, asrecarray=False)
-                single_data_frames.append(
-                    SingleDataFrame(data_set,
-                                    data_source["data_type"],
-                                    data_source["source_name"],
-                                    data_source["year"],
-                                    json_data["reference_temperature"],
-                                    json_data["reference_enthalpy_value"],
-                                    json_data["reference_heat_capacity_value"],
-                                    json_data["reference_heat_capacity_error"],
-                                    json_data["experiment_weight"]))
+                )  # usemask=False, asrecarray=False)
+                single_data_frames.append(SingleDataFrame(
+                    data_set, data_source["data_type"], data_source["source_name"], data_source["year"]))
 
             heat_capacity_data = next(
                 (single_data_frame for single_data_frame in single_data_frames if single_data_frame.data_type == "cp"),
@@ -185,6 +159,7 @@ class DataFrame:
             enthalpy_data = next(
                 (single_data_frame for single_data_frame in single_data_frames if single_data_frame.data_type == "dh"),
                 SingleDataFrame(np.array([], dtype=[("temperature", "f8"), ("experiment", "f8")]), data_type="dh"))
+            # todo: write concatenation of different experiments
 
             return DataFrame(json_data["substance"],
                              heat_capacity_data,
