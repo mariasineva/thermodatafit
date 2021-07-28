@@ -105,6 +105,16 @@ class SingleDataFrame:
         """Plot data using matplotlib."""
         plt.scatter(self.temperature, self.experiment, **kwargs)
 
+    def to_json(self):
+        """Save to json"""
+        return {
+            "source_name": self.source_name,
+            "year": self.year,
+            "data_type": self.data_type,
+            "temperature": self.original_temperature.tolist(),
+            self.data_type: self.experiment.tolist()
+        }
+
 
 class DataFrame:
     def __init__(self, substance: str, heat_capacity_data: SingleDataFrame,
@@ -179,3 +189,32 @@ class DataFrame:
         self.reference_heat_capacity_value = reference_heat_capacity_value
         self.reference_heat_capacity_error = reference_heat_capacity_error
         self.experiment_weight = experiment_weight
+
+    def to_json(self):
+        return {
+            "substance": self.substance,
+            "reference_temperature": self.reference_temperature,
+            "reference_enthalpy_value": self.reference_enthalpy_value,
+            "reference_heat_capacity_value": self.reference_heat_capacity_value,
+            "reference_heat_capacity_error": self.reference_heat_capacity_error,
+            "experiment_weight": self.experiment_weight,
+            "data_sources":
+                ([] if self.enthalpy_data.original_temperature.size == 0 else [self.enthalpy_data.to_json()]) +
+                ([] if self.heat_capacity_data.original_temperature.size == 0 else [self.heat_capacity_data.to_json()])
+        }
+
+    def export_to_json_file(self, filename):
+        with open(filename, "w") as f:
+            f.write(json.dumps(self.to_json(), indent=2))
+
+    def export_to_table_view(self, filename):
+        with open(filename, "w") as f:
+            if self.enthalpy_data.original_temperature.size != 0:
+                f.write("Enthalpy data:\n")
+                for t, exp in zip(self.enthalpy_data.temperature, self.enthalpy_data.experiment):
+                    f.write(str(t) + " " + str(exp) + "\n")
+            if self.heat_capacity_data.original_temperature.size != 0:
+                f.write("Heat Capacity data:\n")
+                for t, exp in zip(self.heat_capacity_data.temperature, self.heat_capacity_data.experiment):
+                    f.write(str(t) + " " + str(exp) + "\n")
+

@@ -49,7 +49,7 @@ if __name__ == '__main__':
     min_power = -1
     max_power = 2
     # for i in range(len(source_data)):
-    for i in [2]:
+    for i in [4]:
         fit_methods = [
             wlsq.WeightedLeastSquaresWithAuxiliaryFunction(power=1),
             lsq.СonstrainedLeastSquaresSM(min_power=-1, max_power=2),
@@ -84,7 +84,14 @@ if __name__ == '__main__':
         comment = ''
         screen_type = 'laptop'
         # screen_type = 'bigscreen'
+        # filename = data_name + '.json'
+        # data_frame.export_to_json_file(filename)
+
+        filename = data_name + '_check.txt'
+        data_frame.export_to_table_view(filename)
+
         draw.basic_plots(fit_methods, data_frame, show_plots, save_plots, comment, hc_data, screen_type)
+
         # draw.stats_plots(fit_methods, data_frame, show_plots, save_plots, comment, screen_type)
         # todo stat plots for dh & cp : qq; res vs fit
         # draw.dh_and_cp_plots(fit_methods, data_frame, hc_data, show_plots, save_plots, comment)
