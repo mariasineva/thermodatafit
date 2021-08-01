@@ -131,7 +131,7 @@ class JointLeastSquares(FitMethod):
 
         self.fit_coefficients = initial_fit.x.tolist()
         # self.fit_coefficients = self.stationary_coefficients(initial_fit.x.tolist(), t_ref, c_0, c_1)
-        self.fit_enthalpy = self.enthalpy(self.fit_coefficients, self.data_frame.dh_t)
+        self.fit_enthalpy = self.delta_enthalpy(self.fit_coefficients, self.data_frame.dh_t)
         self.fit_heat_capacity = self.heat_capacity(self.fit_coefficients, self.data_frame.cp_t)
 
     def c_mode_constrained_approximation(self):

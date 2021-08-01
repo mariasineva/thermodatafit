@@ -6,6 +6,7 @@ from methods.LS_joint import JointLeastSquares
 import methods.plots as draw
 # from methods.weighted_cls import WPlainLeastSquares as wpls
 from methods.LS_constrained_weighted import WeightedJointLeastSquares as wjls
+import methods.external_curves as external
 
 
 def calculate_fits(methods, data):
@@ -37,6 +38,7 @@ source_data = [
     ['dataAu', 'Au', 25.27, 'AuCp'],
     ['UO2dHall', 'UO2', 15.2008, 'UO2CpCut'],
     ['VdHlow', 'V', 24.48, 'VCp'],
+    ['NeO2', 'NeO2', 66.0, 'NeO2CpCut'],
 ]
 
 if __name__ == '__main__':
@@ -48,14 +50,18 @@ if __name__ == '__main__':
     # comment = '4 terms'
     min_power = -1
     max_power = 2
+
+    test_coefs = [-0.78932 * 1e6, 0, 64.7712, 43.8574 * 1e-3, -35.0695 * 1e-6, 13.1917 * 1e-9]
     # for i in range(len(source_data)):
-    for i in [4]:
+    for i in [5]:
         fit_methods = [
-            wlsq.WeightedLeastSquaresWithAuxiliaryFunction(power=1),
-            lsq.СonstrainedLeastSquaresSM(min_power=-1, max_power=2),
-            nonlin.EinsteinPlankSum(3, mode='h'), nonlin.EinsteinPlankSum(3, mode='c'),
-            nonlin.EinsteinPlankSum(3, mode='j'),
-            JointLeastSquares(min_power=-1, max_power=3, mode='h'),
+            external.ExternalCurves.create_from_cp_params(min_power=-2, max_power=3, min_temp=1, max_temp=10,
+                                                          cp_coefficients=test_coefs, source_name='test')
+            # wlsq.WeightedLeastSquaresWithAuxiliaryFunction(power=1),
+            # lsq.СonstrainedLeastSquaresSM(min_power=-1, max_power=2),
+            # nonlin.EinsteinPlankSum(3, mode='h'), nonlin.EinsteinPlankSum(3, mode='c'),
+            # nonlin.EinsteinPlankSum(3, mode='j'),
+            # JointLeastSquares(min_power=-1, max_power=3, mode='h'),
             # JointLeastSquares(min_power=-1, max_power=3, mode='c'),
             # JointLeastSquares(min_power=-1, max_power=3, mode='cc'),
             # JointLeastSquares(min_power=-1, max_power=3, mode='j'),
@@ -88,7 +94,7 @@ if __name__ == '__main__':
         # data_frame.export_to_json_file(filename)
 
         filename = data_name + '_check.txt'
-        data_frame.export_to_table_view(filename)
+        # data_frame.export_to_table_view(filename)
 
         draw.basic_plots(fit_methods, data_frame, show_plots, save_plots, comment, hc_data, screen_type)
 
