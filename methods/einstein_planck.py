@@ -174,7 +174,8 @@ class EinsteinPlankSum(EinsteinPlankMethod):
 
     def calculate_enthalpy_residuals(self):
         # if self.mode == 'h':
-        self.enthalpy_residuals = (self.data_frame.dh_e - self.fit_enthalpy) / np.std(self.data_frame.dh_e - self.fit_enthalpy)
+        self.enthalpy_residuals = (self.data_frame.dh_e - self.fit_enthalpy) / np.std(
+            self.data_frame.dh_e - self.fit_enthalpy)
         # elif self.mode == 'c':
         #     self.residuals = (self.data_frame.cp_e - self.fit_derivative) / \
         #                      np.std(self.data_frame.cp_e - self.fit_derivative)
@@ -198,64 +199,78 @@ class EinsteinPlankSum(EinsteinPlankMethod):
         #     ax.scatter(np.concatenate((self.data_frame.dh_t, self.data_frame.cp_t), axis=0), self.residuals, **kwargs)
 
 
-class EinsteinPlankAndPolynom(FitMethod):
+class EinsteinAndPolynomialCorrection(FitMethod):
     """list of functions"""
 
-    def __init__(self):
+    def __init__(self, power, mode='h'):
         self.CONST_R = 8.3144598
-        self.initial_params = [0.01, 1.00]
-        self.initial_boundaries = [[0.0, 0.0], [500.0, 1.0e5]]
+        self.initial_params = [0.01, 1.00, 1.00, 1.00, 1.00, ]
+        # self.initial_boundaries = [[-10.0, 100.0], [-10.0, 100.0]]
         self.initial_temperature = 298.15
         self.params = self.initial_params
-        self.bounds = self.initial_boundaries
+        # self.bounds = self.initial_boundaries
+        self.mode = mode
+        self.name = "EinsteinAndPolynomialCorrection"
 
-    def cp_cost(self, parameters, temperature, experiment):
+    def heat_capacity_cost(self, parameters, temperature, experiment):
         cp_calculated = 0.0
-        for i in range(0, len(parameters), 2):
-            alpha = parameters[i]
-            theta = parameters[i + 1]
-            x = theta / temperature
-            ex = np.exp(x)
-            cp_calculated += 3 * alpha * ex * x * x / (ex - 1) ** 2
-        # return (cp_calculated * CONST_R - experiment)/experiment
-        return cp_calculated * self.CONST_R - experiment
+        theta = parameters[0]
+        a = parameters[1]
+        b = parameters[2]
+        c = parameters[3]
+        d = parameters[4]
+        t = temperature
+        theta_t = theta / temperature
+        e_theta = np.exp(theta_t)
+        cp_calculated += 3 * e_theta * theta_t * theta_t / (
+                e_theta - 1) ** 2 * self.CONST_R + a * t + b * t * t + c * t ** 3 + d * t ** 4
+        return (cp_calculated - experiment)/experiment
 
-    def h_cost(self, parameters, temperature, experiment):
+    def enthalpy_cost(self, parameters, temperature, experiment):
         h_calculated = 0.0
+        theta = parameters[0]
+        a = parameters[1]
+        b = parameters[2]
+        c = parameters[3]
+        d = parameters[4]
+        t = temperature
+        theta_t = theta / temperature
+        e_theta = np.exp(theta_t)
+        h_calculated += 3 / 2 * self.CONST_R * theta_t * (e_theta + 1) / (
+                e_theta - 1) * temperature + a * t ** 2 / 2 + b * t ** 3 / 3 + c * t ** 4 / 4 + d * t ** 5 / 5
 
-        if len(parameters) % 2 != 0:
-            print("Error!\n")
+        return (h_calculated - experiment)/experiment
 
-        for i in range(0, len(parameters), 2):
-            alpha = parameters[i]
-            theta = parameters[i + 1]
-            x = theta / temperature
-            h_calculated += 3 * alpha * x / (np.exp(x) - 1) * temperature
-
-        h_calculated *= self.CONST_R
-        return h_calculated - experiment
-
-    def cp_draw(self, parameters, temperature):
-        cp_calculated = 0.0
-        for alpha, theta in zip(parameters[::2], parameters[1::2]):
-            x = theta / temperature
-            ex = np.exp(x)
-            cp_calculated += 3 * alpha * ex * x * x / (ex - 1) ** 2
-        return cp_calculated * self.CONST_R
+    def heat_capacity(self, parameters, temperature):
+        cp_calculated = 0.0 #todo combine with cost
+        theta = parameters[0]
+        a = parameters[1]
+        b = parameters[2]
+        c = parameters[3]
+        d = parameters[4]
+        t = temperature
+        theta_t = theta / temperature
+        e_theta = np.exp(theta_t)
+        cp_calculated += 3 * e_theta * theta_t * theta_t / (
+                e_theta - 1) ** 2 * self.CONST_R + a * t + b * t * t + c * t ** 3 + d * t ** 4
+        return cp_calculated
 
     def h_draw(self, parameters, temperature):
-        h_calculated = 0.
-        if len(parameters) % 2 != 0:
-            print("Error!\n")
-        for i in range(0, len(parameters), 2):
-            alpha = parameters[i]
-            theta = parameters[i + 1]
-            x = theta / temperature
-            h_calculated += 3 * alpha * x / (np.exp(x) - 1) * temperature
+        h_calculated = 0.0
+        theta = parameters[0]
+        a = parameters[1]
+        b = parameters[2]
+        c = parameters[3]
+        d = parameters[4]
+        t = temperature
+        theta_t = theta / temperature
+        e_theta = np.exp(theta_t)
+        h_calculated += 3 / 2 * self.CONST_R * theta_t * (e_theta + 1) / (
+                e_theta - 1) * temperature + a * t ** 2 / 2 + b * t ** 3 / 3 + c * t ** 4 / 4 + d * t ** 5 / 5
 
-        return h_calculated * self.CONST_R
+        return h_calculated
 
-    def dh_draw(self, parameters, temperature):
+    def delta_enthalpy(self, parameters, temperature):
         return self.h_draw(parameters, temperature) - self.h_draw(parameters, self.initial_temperature)
 
     def dh_cost(self, parameters, temperature, experiment):
@@ -264,3 +279,43 @@ class EinsteinPlankAndPolynom(FitMethod):
     def cost_function(self, parameters, h_temp, h_experiment, cp_temp, cp_experiment):
         dh, cp = self.dh_cost(parameters, h_temp, h_experiment), self.cp_cost(parameters, cp_temp, cp_experiment)
         return np.concatenate((dh, cp), axis=0)
+
+    def approx(self):
+
+
+        if self.mode == 'j':
+            res_lsq = scipy_ls(self.joint_cost_function, self.params, #bounds=self.bounds,
+                               args=(self.data_frame.dh_t, self.data_frame.dh_e,
+                                     self.data_frame.cp_t, self.data_frame.cp_e))
+        elif self.mode == 'h':
+            res_lsq = scipy_ls(self.delta_enthalpy_cost, self.params, #bounds=self.bounds,
+                               args=(self.data_frame.dh_t, self.data_frame.dh_e))
+        elif self.mode == 'c':
+            res_lsq = scipy_ls(self.heat_capacity_cost, self.params, #bounds=self.bounds,
+                               args=(self.data_frame.cp_t, self.data_frame.cp_e))
+        else:
+            print('Wrong calculation type!')
+            raise ValueError('Type can only be h c j.\n')
+        # print(res_lsq.x.tolist())
+        self.params = res_lsq.x.tolist()
+
+    def fit(self, data_frame: DataFrame):
+
+        self.data_frame = data_frame
+
+        self.approx()
+
+        self.enthalpy_temperature = data_frame.dh_t
+
+        self.heat_capacity_temperature = data_frame.cp_t
+
+        self.fit_enthalpy = self.delta_enthalpy(self.params, self.data_frame.dh_t)
+
+        if not len(self.data_frame.cp_t):
+            self.fit_heat_capacity = self.heat_capacity(self.params, self.data_frame.dh_t)
+        else:
+            self.fit_heat_capacity = self.heat_capacity(self.params, self.heat_capacity_temperature)
+
+    def calculate_heat_capacity_residuals(self):
+        self.heat_capacity_residuals = (self.data_frame.cp_e - self.fit_heat_capacity) / \
+                                       np.std(self.data_frame.cp_e - self.fit_heat_capacity)

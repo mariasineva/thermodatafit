@@ -53,14 +53,15 @@ if __name__ == '__main__':
 
     test_coefs = [-0.78932 * 1e6, 0, 64.7712, 43.8574 * 1e-3, -35.0695 * 1e-6, 13.1917 * 1e-9]
     # for i in range(len(source_data)):
-    for i in [5]:
+    for i in [4]:
         fit_methods = [
-            external.ExternalCurves.create_from_cp_params(min_power=-2, max_power=3, min_temp=1, max_temp=10,
-                                                          cp_coefficients=test_coefs, source_name='test')
+            # external.ExternalCurves.create_from_cp_params(min_power=-2, max_power=3, min_temp=1, max_temp=10,
+            #                                               cp_coefficients=test_coefs, source_name='test'),
             # wlsq.WeightedLeastSquaresWithAuxiliaryFunction(power=1),
             # lsq.СonstrainedLeastSquaresSM(min_power=-1, max_power=2),
             # nonlin.EinsteinPlankSum(3, mode='h'), nonlin.EinsteinPlankSum(3, mode='c'),
             # nonlin.EinsteinPlankSum(3, mode='j'),
+            nonlin.EinsteinAndPolynomialCorrection(3, mode = 'c'),
             # JointLeastSquares(min_power=-1, max_power=3, mode='h'),
             # JointLeastSquares(min_power=-1, max_power=3, mode='c'),
             # JointLeastSquares(min_power=-1, max_power=3, mode='cc'),
