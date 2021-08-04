@@ -28,7 +28,8 @@ class FitMethod:
                 pass
 
     def calculate_enthalpy_residuals(self):
-        self.enthalpy_residuals = (self.data_frame.dh_e - self.fit_enthalpy) / np.std(self.data_frame.dh_e - self.fit_enthalpy)
+        self.enthalpy_residuals = \
+            (self.data_frame.dh_e - self.fit_enthalpy) / np.std(self.data_frame.dh_e - self.fit_enthalpy)
 
     def calculate_heat_capacity_residuals(self):
         pass
@@ -111,7 +112,6 @@ class FitMethod:
         tss = sum([(y - mean) ** 2 for y in self.data_frame.experiment])
 
         return 1 - rss / tss
-        # return np.sqrt(rss)/len(self.data_frame.experiment) # this is norm sum of sq of resids
 
     def get_deviations(self):
         """Return R-squared """

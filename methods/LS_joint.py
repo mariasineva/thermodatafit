@@ -1,7 +1,8 @@
-from dataframe import DataFrame
-from methods.fit_method import FitMethod
 import numpy as np
 from scipy.optimize import least_squares as scipy_ls
+
+from dataframe import DataFrame
+from methods.fit_method import FitMethod
 
 
 class JointLeastSquares(FitMethod):
@@ -15,11 +16,9 @@ class JointLeastSquares(FitMethod):
         self.min_power = min_power
         self.max_power = max_power
         self.params = np.ones(self.max_power - self.min_power - 1)
-        # self.params = [1.1, 1.2, 1.3]
 
     def enthalpy(self, parameters, temperature):
-        '''final enthalpy function, uses all coefficients after calculating a0 and a1'''
-        # assert len(parameters) == len(self.params), "Wrong parameters count for h_draw"
+        """final enthalpy function, uses all coefficients after calculating a0 and a1"""
         h_calculated = 0.0
         powers = [x for x in range(self.min_power, self.max_power + 1)]
         for i, parameter in zip(powers, parameters):
@@ -27,9 +26,9 @@ class JointLeastSquares(FitMethod):
         return h_calculated
 
     def enthalpy_initial_function(self, parameters, temperature):
-        '''f(T) = H(T) - H(0), calculated for initial set of parameters
+        """f(T) = H(T) - H(0), calculated for initial set of parameters
         (before converting to stationary coefficients),
-        ignoring params[0] and params[1] which are obtained with initial values'''
+        ignoring params[0] and params[1] which are obtained with initial values"""
 
         assert len(parameters) == len(self.params), "Wrong parameters count for enthalpy"
 
@@ -71,14 +70,12 @@ class JointLeastSquares(FitMethod):
         return fit_coefficients
 
     def delta_enthalpy_initial_function(self, parameters, temperature):
-        '''H(T) - H(T_ref)'''
+        """H(T) - H(T_ref)"""
         return self.enthalpy_initial_function(parameters, temperature) \
                - self.enthalpy_initial_function(parameters, self.data_frame.reference_temperature)
 
     def delta_enthalpy_constrained_cost(self, parameters, temperature, experiment):
-        # renormalize cost
         residuals = (self.delta_enthalpy_initial_function(parameters, temperature) - experiment) / experiment
-        # print(self.name, "e_dh:", sum(residuals ** 2))
         return residuals
 
     def heat_capacity_initial_function(self, parameters, temperature):
@@ -90,22 +87,16 @@ class JointLeastSquares(FitMethod):
         return cp_calculated
 
     def heat_capacity_cost(self, parameters, temperature, experiment):
-        # residuals = self.cp_draw(parameters, temperature) - experiment
-        # renormalize cost
         residuals = (self.heat_capacity(parameters, temperature) - experiment) / experiment
-        # print(self.name, "e_cp:", sum(residuals ** 2))
         return residuals
 
     def heat_capacity_constrained_cost(self, parameters, temperature, experiment):
         residuals = self.heat_capacity_initial_function(parameters, temperature) - experiment
-        # print(self.name, 'e_cp:', sum(residuals ** 2))
         return residuals
 
     def joint_cost_function(self, parameters, h_temp, h_experiment, cp_temp, cp_experiment):
         dh, cp = self.delta_enthalpy_constrained_cost(parameters, h_temp, h_experiment), \
                  self.heat_capacity_constrained_cost(parameters, cp_temp, cp_experiment)
-        # print(self.name, "e_dh:", sum(dh ** 2), "e_cp:", sum(cp ** 2), "e_dh+cp:",
-        #       sum(np.concatenate((dh ** 2, cp ** 2), axis=0)))
         return np.concatenate((dh, cp), axis=0)
 
     def h_mode_approximation(self):
@@ -118,7 +109,8 @@ class JointLeastSquares(FitMethod):
         updated_experiment = self.data_frame.dh_e - c_0 * np.ones(len(self.enthalpy_temperature)) - c_1 * (
                 self.enthalpy_temperature - t_ref_vector)
 
-        initial_fit = scipy_ls(self.delta_enthalpy_constrained_cost, self.params, args=(self.data_frame.dh_t, updated_experiment))
+        initial_fit = scipy_ls(self.delta_enthalpy_constrained_cost, self.params,
+                               args=(self.data_frame.dh_t, updated_experiment))
         print(self.name, initial_fit.x.tolist())
 
         self.fit_coefficients = self.stationary_coefficients(initial_fit.x.tolist(), t_ref, c_0, c_1)
@@ -142,7 +134,8 @@ class JointLeastSquares(FitMethod):
 
         updated_cp = self.data_frame.cp_e - c_1 * np.ones(len(self.heat_capacity_temperature))
 
-        initial_fit = scipy_ls(self.heat_capacity_constrained_cost, self.params, args=(self.data_frame.cp_t, updated_cp))
+        initial_fit = scipy_ls(self.heat_capacity_constrained_cost, self.params,
+                               args=(self.data_frame.cp_t, updated_cp))
 
         self.fit_coefficients = self.stationary_coefficients(initial_fit.x.tolist(), t_ref, c_0, c_1)
         self.fit_enthalpy = self.delta_enthalpy(self.fit_coefficients, self.data_frame.dh_t)
@@ -160,7 +153,8 @@ class JointLeastSquares(FitMethod):
         updated_heat_capacity = self.data_frame.cp_e - c_1 * np.ones(len(self.heat_capacity_temperature))
 
         initial_fit = scipy_ls(self.joint_cost_function, self.params,
-                               args=(self.enthalpy_temperature, updated_enthalpy, self.data_frame.cp_t, updated_heat_capacity))
+                               args=(self.enthalpy_temperature, updated_enthalpy, self.data_frame.cp_t,
+                                     updated_heat_capacity))
 
         self.fit_coefficients = self.stationary_coefficients(initial_fit.x.tolist(), t_ref, c_0, c_1)
         self.fit_enthalpy = self.delta_enthalpy(self.fit_coefficients, self.data_frame.dh_t)
@@ -183,11 +177,10 @@ class JointLeastSquares(FitMethod):
 
     # def calculate_enthalpy_residuals(self):
     #     if self.mode == 'h':
-        # self.enthalpy_residuals = (self.data_frame.dh_e - self.fit_enthalpy) / np.std(
-        #     self.data_frame.dh_e - self.fit_enthalpy)
+    # self.enthalpy_residuals = (self.data_frame.dh_e - self.fit_enthalpy) / np.std(
+    #     self.data_frame.dh_e - self.fit_enthalpy)
 
     def calculate_heat_capacity_residuals(self):
-        self.heat_capacity_residuals = (self.data_frame.cp_e - self.heat_capacity(self.fit_coefficients,
-                                                                                  self.heat_capacity_temperature)) / \
-                                       np.std(self.data_frame.cp_e - self.heat_capacity(self.fit_coefficients,
-                                                                                        self.heat_capacity_temperature))
+        self.heat_capacity_residuals = \
+            (self.data_frame.cp_e - self.heat_capacity(self.fit_coefficients, self.heat_capacity_temperature)) / \
+            np.std(self.data_frame.cp_e - self.heat_capacity(self.fit_coefficients, self.heat_capacity_temperature))

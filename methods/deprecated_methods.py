@@ -94,8 +94,6 @@ class RobustCLS(FitMethod):
         # other_norm = sm.RLM(updated_experiment, self.updated_matrix, M=sm.robust.norms.TrimmedMean())
         # self.aux_fit = other_norm.fit(scale_est=sm.robust.scale.HuberScale(), cov="H3")
 
-
-
         self.aux_coefficients = self.aux_fit.params
 
         a_1 = c_1 - \
@@ -243,7 +241,8 @@ class OrdinaryLeastSquaresSMminOne(FitMethod):
         self.data_frame = data_frame
 
         self.source_matrix = np.column_stack(
-            [data_frame.temperature ** i if i != 0 else np.ones(len(data_frame.temperature)) for i in range(-1, self.power + 1)])
+            [data_frame.temperature ** i if i != 0 else np.ones(len(data_frame.temperature)) for i in
+             range(-1, self.power + 1)])
 
         self.source_matrix = np.column_stack((self.source_matrix, np.sqrt(data_frame.temperature)))
 
@@ -252,8 +251,10 @@ class OrdinaryLeastSquaresSMminOne(FitMethod):
         self.fit_coefficients = self.aux_fit.params
         self.fit = np.dot(self.source_matrix, self.fit_coefficients)
 
-        self.heat_capacity_matrix = np.vstack([i * data_frame.temperature ** (i - 1) for i in (range(-1, self.power + 1))])
-        self.heat_capacity_matrix = np.vstack((self.heat_capacity_matrix, [(2*np.sqrt(data_frame.temperature))**(-1)])).T
+        self.heat_capacity_matrix = np.vstack(
+            [i * data_frame.temperature ** (i - 1) for i in (range(-1, self.power + 1))])
+        self.heat_capacity_matrix = np.vstack(
+            (self.heat_capacity_matrix, [(2 * np.sqrt(data_frame.temperature)) ** (-1)])).T
 
         self.fit_heat_capacity = np.dot(self.heat_capacity_matrix, self.fit_coefficients)
 
@@ -263,7 +264,6 @@ class OrdinaryLeastSquaresSMminOne(FitMethod):
         t_ref_diff_array = [self.data_frame.reference_temperature ** i for i in range(self.power)]
         diff_coefficients = self.fit_coefficients[1:]
         print(np.dot(t_ref_array, self.fit_coefficients), np.dot(t_ref_diff_array, diff_coefficients))
-
 
 
 class PlainJointLeastSquares(FitMethod):
@@ -296,7 +296,8 @@ class PlainJointLeastSquares(FitMethod):
         return self.heat_capacity(parameters, temperature) - experiment
 
     def joint_cost(self, parameters, h_temp, h_experiment, cp_temp, cp_experiment):
-        dh, cp = self.delta_enthalpy_cost(parameters, h_temp, h_experiment), self.heat_capacity_cost(parameters, cp_temp, cp_experiment)
+        dh = self.delta_enthalpy_cost(parameters, h_temp, h_experiment)
+        cp = self.heat_capacity_cost(parameters, cp_temp, cp_experiment)
         return np.concatenate((dh, cp), axis=0)
 
     def fit(self, data_frame: DataFrame):
@@ -314,7 +315,7 @@ class PlainJointLeastSquares(FitMethod):
         #                    self.data_frame.cp_t, self.data_frame.cp_e))
 
         initial_fit = scipy_ls(self.heat_capacity_cost, self.params,  # bounds=self.bounds,
-                           args=(self.heat_capacity_temperature, self.data_frame.cp_e))
+                               args=(self.heat_capacity_temperature, self.data_frame.cp_e))
 
         self.fit_coefficients = initial_fit.x.tolist()
 
@@ -336,5 +337,6 @@ class PlainJointLeastSquares(FitMethod):
         #        axis=0)
 
     def calculate_heat_capacity_residuals(self):
-        self.heat_capacity_residuals = (self.data_frame.cp_e - self.heat_capacity(self.fit_coefficients, self.heat_capacity_temperature)) / \
-                                    np.std(self.data_frame.cp_e - self.heat_capacity(self.fit_coefficients, self.heat_capacity_temperature))
+        self.heat_capacity_residuals = \
+            (self.data_frame.cp_e - self.heat_capacity(self.fit_coefficients, self.heat_capacity_temperature)) / \
+            np.std(self.data_frame.cp_e - self.heat_capacity(self.fit_coefficients, self.heat_capacity_temperature))

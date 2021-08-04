@@ -1,6 +1,5 @@
 from methods.fit_method import FitMethod
 from dataframe import DataFrame
-from methods.auxiliary_function import auxiliary_function, calculate_original_fit
 import statsmodels.api as sm
 import numpy as np
 from statsmodels.graphics.gofplots import ProbPlot
@@ -35,7 +34,8 @@ class OrdinaryLeastSquaresSM(FitMethod):
         heat_capacity_matrix = np.vstack(
             [i * self.heat_capacity_temperature ** (i - 1) for i in range(self.power + 1)]).T
         heat_capacity = np.dot(heat_capacity_matrix, self.fit_coefficients)
-        self.heat_capacity_residuals = (self.data_frame.cp_e - heat_capacity) / np.std(self.data_frame.cp_e - heat_capacity)
+        self.heat_capacity_residuals = \
+            (self.data_frame.cp_e - heat_capacity) / np.std(self.data_frame.cp_e - heat_capacity)
 
     def calculate_refpoints(self):
         t_ref_array = [1]
@@ -76,4 +76,3 @@ class OrdinaryLeastSquaresSM(FitMethod):
         cp_source_matrix = np.vstack([i * heat_capacity_temperature ** (i - 1) for i in range(0, self.power + 1)]).T
         fit_cp = np.dot(cp_source_matrix, self.fit_coefficients)
         return experiment_cp - fit_cp
-

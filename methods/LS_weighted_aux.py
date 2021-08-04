@@ -34,8 +34,8 @@ class WeightedLeastSquaresWithAuxiliaryFunction(FitMethod):
             {power: self.aux_fit_coefficients[power] for power in range(0, len(self.aux_fit_coefficients))},
             data_frame.reference_temperature,
             data_frame.reference_heat_capacity_value)
-        self.original_fit_coefficients = [original_fit_dict[power] if power in original_fit_dict else 0.0 for power in
-                                          range(-1, 5)]
+        self.original_fit_coefficients = \
+            [original_fit_dict[power] if power in original_fit_dict else 0.0 for power in range(-1, 5)]
 
         self.fit_enthalpy = np.dot(self.source_matrix, self.original_fit_coefficients)
 

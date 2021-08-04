@@ -2,7 +2,6 @@ from dataframe import DataFrame
 from methods.fit_method import FitMethod
 import numpy as np
 from scipy.optimize import least_squares as scipy_ls
-from scipy.optimize import curve_fit
 from scipy.stats import t as students_t
 
 
@@ -118,8 +117,6 @@ class EinsteinPlankSum(EinsteinPlankMethod):
                 print('Wrong calculation type!')
                 raise ValueError('Type can only be h c j.\n')
 
-            # print(res_lsq.x.tolist())
-
         self.params = res_lsq.x.tolist()
 
     def covariance_stuff(self, cost_function):
@@ -149,13 +146,11 @@ class EinsteinPlankSum(EinsteinPlankMethod):
             self.params = np.append(self.params, 10)
 
     def fit(self, data_frame: DataFrame):
-
         self.data_frame = data_frame
 
         self.approx()
 
         self.enthalpy_temperature = data_frame.dh_t
-
         self.heat_capacity_temperature = data_frame.cp_t
 
         self.fit_enthalpy = self.delta_enthalpy(self.params, self.data_frame.dh_t)
@@ -174,8 +169,8 @@ class EinsteinPlankSum(EinsteinPlankMethod):
 
     def calculate_enthalpy_residuals(self):
         # if self.mode == 'h':
-        self.enthalpy_residuals = (self.data_frame.dh_e - self.fit_enthalpy) / np.std(
-            self.data_frame.dh_e - self.fit_enthalpy)
+        self.enthalpy_residuals = \
+            (self.data_frame.dh_e - self.fit_enthalpy) / np.std(self.data_frame.dh_e - self.fit_enthalpy)
         # elif self.mode == 'c':
         #     self.residuals = (self.data_frame.cp_e - self.fit_derivative) / \
         #                      np.std(self.data_frame.cp_e - self.fit_derivative)
@@ -186,8 +181,8 @@ class EinsteinPlankSum(EinsteinPlankMethod):
         #        axis=0)
 
     def calculate_heat_capacity_residuals(self):
-        self.heat_capacity_residuals = (self.data_frame.cp_e - self.fit_heat_capacity) / \
-                                       np.std(self.data_frame.cp_e - self.fit_heat_capacity)
+        self.heat_capacity_residuals = \
+            (self.data_frame.cp_e - self.fit_heat_capacity) / np.std(self.data_frame.cp_e - self.fit_heat_capacity)
 
     def plot_enthalpy_residuals(self, ax, **kwargs):
         """Plot standartised residuals using matplotlib."""
@@ -224,7 +219,7 @@ class EinsteinAndPolynomialCorrection(FitMethod):
         e_theta = np.exp(theta_t)
         cp_calculated += 3 * e_theta * theta_t * theta_t / (
                 e_theta - 1) ** 2 * self.CONST_R + a * t + b * t * t + c * t ** 3 + d * t ** 4
-        return (cp_calculated - experiment)/experiment
+        return (cp_calculated - experiment) / experiment
 
     def enthalpy_cost(self, parameters, temperature, experiment):
         h_calculated = 0.0
@@ -239,10 +234,10 @@ class EinsteinAndPolynomialCorrection(FitMethod):
         h_calculated += 3 / 2 * self.CONST_R * theta_t * (e_theta + 1) / (
                 e_theta - 1) * temperature + a * t ** 2 / 2 + b * t ** 3 / 3 + c * t ** 4 / 4 + d * t ** 5 / 5
 
-        return (h_calculated - experiment)/experiment
+        return (h_calculated - experiment) / experiment
 
     def heat_capacity(self, parameters, temperature):
-        cp_calculated = 0.0 #todo combine with cost
+        cp_calculated = 0.0  # todo combine with cost
         theta = parameters[0]
         a = parameters[1]
         b = parameters[2]
@@ -282,16 +277,15 @@ class EinsteinAndPolynomialCorrection(FitMethod):
 
     def approx(self):
 
-
         if self.mode == 'j':
-            res_lsq = scipy_ls(self.joint_cost_function, self.params, #bounds=self.bounds,
+            res_lsq = scipy_ls(self.joint_cost_function, self.params,  # bounds=self.bounds,
                                args=(self.data_frame.dh_t, self.data_frame.dh_e,
                                      self.data_frame.cp_t, self.data_frame.cp_e))
         elif self.mode == 'h':
-            res_lsq = scipy_ls(self.delta_enthalpy_cost, self.params, #bounds=self.bounds,
+            res_lsq = scipy_ls(self.delta_enthalpy_cost, self.params,  # bounds=self.bounds,
                                args=(self.data_frame.dh_t, self.data_frame.dh_e))
         elif self.mode == 'c':
-            res_lsq = scipy_ls(self.heat_capacity_cost, self.params, #bounds=self.bounds,
+            res_lsq = scipy_ls(self.heat_capacity_cost, self.params,  # bounds=self.bounds,
                                args=(self.data_frame.cp_t, self.data_frame.cp_e))
         else:
             print('Wrong calculation type!')
@@ -317,5 +311,5 @@ class EinsteinAndPolynomialCorrection(FitMethod):
             self.fit_heat_capacity = self.heat_capacity(self.params, self.heat_capacity_temperature)
 
     def calculate_heat_capacity_residuals(self):
-        self.heat_capacity_residuals = (self.data_frame.cp_e - self.fit_heat_capacity) / \
-                                       np.std(self.data_frame.cp_e - self.fit_heat_capacity)
+        self.heat_capacity_residuals = \
+            (self.data_frame.cp_e - self.fit_heat_capacity) / np.std(self.data_frame.cp_e - self.fit_heat_capacity)

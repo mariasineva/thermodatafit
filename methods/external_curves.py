@@ -1,6 +1,5 @@
 from methods.fit_method import FitMethod
 from dataframe import DataFrame
-import statsmodels.api as sm
 import numpy as np
 
 
@@ -83,5 +82,5 @@ class ExternalCurves(FitMethod):
         heat_capacity_matrix = np.vstack(
             [i * self.heat_capacity_temperature ** (i - 1) for i in range(self.min_power, self.max_power + 1)]).T
         heat_capacity = np.dot(heat_capacity_matrix, self.fit_coefficients)
-        self.heat_capacity_residuals = (self.data_frame.cp_e - heat_capacity) / np.std(
-            self.data_frame.cp_e - heat_capacity)
+        self.heat_capacity_residuals = \
+            (self.data_frame.cp_e - heat_capacity) / np.std(self.data_frame.cp_e - heat_capacity)

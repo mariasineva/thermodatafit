@@ -154,12 +154,9 @@ class DataFrame:
 
             single_data_frames = []
             for data_source in json_data["data_sources"]:
-                data_set = np.lib.recfunctions.merge_arrays(
-                    (
-                        np.array(data_source["temperature"], dtype=[("temperature", np.float64)]),
-                        np.array(data_source[data_source["data_type"]], dtype=[("experiment", np.float64)])
-                    ),
-                )  # usemask=False, asrecarray=False)
+                data_set = np.lib.recfunctions.merge_arrays((
+                    np.array(data_source["temperature"], dtype=[("temperature", np.float64)]),
+                    np.array(data_source[data_source["data_type"]], dtype=[("experiment", np.float64)])))
                 single_data_frames.append(SingleDataFrame(
                     data_set, data_source["data_type"], data_source["source_name"], data_source["year"]))
 
@@ -217,4 +214,3 @@ class DataFrame:
                 f.write("Heat Capacity data:\n")
                 for t, exp in zip(self.heat_capacity_data.temperature, self.heat_capacity_data.experiment):
                     f.write(str(t) + " " + str(exp) + "\n")
-

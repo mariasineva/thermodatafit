@@ -53,5 +53,5 @@ class LeastSquaresFitNoFree(FitMethod):
         # t_ref_array = [1]
         # t_ref_array.extend(np.array([self.data_frame.reference_temperature ** i for i in range(1, self.power + 1)]))
         t_ref_diff_array = [(i + 1) * self.data_frame.reference_temperature ** i for i in [-2, 0, 1]]
-        self.fit_coefficients
+        self.fit_coefficients  # todo: wtf?
         print(0, np.dot(t_ref_diff_array, self.fit_coefficients))
