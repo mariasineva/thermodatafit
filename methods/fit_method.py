@@ -125,3 +125,7 @@ class FitMethod:
     def compare_to_cp(self, hc_data):
         """Compare to cp"""
         pass
+
+    def result_txt_output(self):
+        """Coefs in text mode"""
+        pass

@@ -184,3 +184,17 @@ class JointLeastSquares(FitMethod):
         self.heat_capacity_residuals = \
             (self.data_frame.cp_e - self.heat_capacity(self.fit_coefficients, self.heat_capacity_temperature)) / \
             np.std(self.data_frame.cp_e - self.heat_capacity(self.fit_coefficients, self.heat_capacity_temperature))
+
+    def result_txt_output(self):
+        powers = [x for x in range(self.min_power, self.max_power + 1)]
+        h_formula = " + ".join([f"{parameter:.4f} T^{i}" for i, parameter in zip(powers, self.fit_coefficients)])
+        c_formula = " + ".join(
+            [f"{i * parameter:.4f} T^{i - 1}" for i, parameter in zip(powers, self.fit_coefficients) if i != 0])
+
+        return {
+            "substance": self.data_frame.name,
+            "method": self.name,
+            "coefficients": self.fit_coefficients,
+            "formula_dh": h_formula,
+            "formula_cp": c_formula
+        }

@@ -295,7 +295,7 @@ class WeightedJointLeastSquares(FitMethod):
             'j_relative_error': self.j_relative_error_mode_approximation,
         }[self.mode]()
 
-        print('Finally:', self.name, self.fit_coefficients)
+        # print('Finally:', self.name, self.fit_coefficients)
 
     def calculate_heat_capacity_residuals(self):
         self.heat_capacity_residuals = \
@@ -305,3 +305,4 @@ class WeightedJointLeastSquares(FitMethod):
     def calculate_enthalpy_residuals(self):
         self.enthalpy_residuals = \
             (self.data_frame.dh_e - self.fit_enthalpy) / np.std(self.data_frame.dh_e - self.fit_enthalpy)
+
