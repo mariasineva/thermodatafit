@@ -198,6 +198,7 @@ class EinsteinAndPolynomialCorrection(FitMethod):
     """list of functions"""
 
     def __init__(self, power, mode='h'):
+        self.name = "E-P. and correction term: %s mode" % mode
         self.CONST_R = 8.3144598
         self.initial_params = [0.01, 1.00, 1.00, 1.00, 1.00, ]
         # self.initial_boundaries = [[-10.0, 100.0], [-10.0, 100.0]]
@@ -205,7 +206,6 @@ class EinsteinAndPolynomialCorrection(FitMethod):
         self.params = self.initial_params
         # self.bounds = self.initial_boundaries
         self.mode = mode
-        self.name = "EinsteinAndPolynomialCorrection"
 
     def heat_capacity_cost(self, parameters, temperature, experiment):
         cp_calculated = 0.0
@@ -250,7 +250,7 @@ class EinsteinAndPolynomialCorrection(FitMethod):
                 e_theta - 1) ** 2 * self.CONST_R + a * t + b * t * t + c * t ** 3 + d * t ** 4
         return cp_calculated
 
-    def h_draw(self, parameters, temperature):
+    def enthalpy(self, parameters, temperature):
         h_calculated = 0.0
         theta = parameters[0]
         a = parameters[1]
@@ -266,13 +266,15 @@ class EinsteinAndPolynomialCorrection(FitMethod):
         return h_calculated
 
     def delta_enthalpy(self, parameters, temperature):
-        return self.h_draw(parameters, temperature) - self.h_draw(parameters, self.initial_temperature)
+        return self.enthalpy(parameters, temperature) - self.enthalpy(parameters, self.initial_temperature)
 
-    def dh_cost(self, parameters, temperature, experiment):
-        return (self.h_draw(parameters, temperature) - self.h_draw(parameters, 298.15) - experiment) / experiment
+    def delta_enthalpy_cost(self, parameters, temperature, experiment):
+        return (self.enthalpy(parameters, temperature) - self.enthalpy(parameters, 298.15) - experiment) / experiment
 
-    def cost_function(self, parameters, h_temp, h_experiment, cp_temp, cp_experiment):
-        dh, cp = self.dh_cost(parameters, h_temp, h_experiment), self.cp_cost(parameters, cp_temp, cp_experiment)
+    def joint_cost_function(self, parameters, h_temp, h_experiment, cp_temp, cp_experiment):
+        dh, cp = self.delta_enthalpy_cost(parameters, h_temp, h_experiment), self.heat_capacity_cost(parameters,
+                                                                                                     cp_temp,
+                                                                                                     cp_experiment)
         return np.concatenate((dh, cp), axis=0)
 
     def approx(self):
