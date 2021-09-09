@@ -115,6 +115,13 @@ class SingleDataFrame:
             self.data_type: self.experiment.tolist()
         }
 
+    def append(self, another_data_frame):
+        if self.data_type == another_data_frame.data_type:
+            self.temperature = np.concatenate((self.temperature, another_data_frame.temperature), axis=None)
+            self.experiment = np.concatenate((self.experiment, another_data_frame.experiment), axis=None)
+        else:
+            raise ValueError('Do not mix data types')
+
 
 class DataFrame:
     def __init__(self, substance: str, heat_capacity_data: SingleDataFrame,
@@ -160,13 +167,18 @@ class DataFrame:
                 single_data_frames.append(SingleDataFrame(
                     data_set, data_source["data_type"], data_source["source_name"], data_source["year"]))
 
-            heat_capacity_data = next(
-                (single_data_frame for single_data_frame in single_data_frames if single_data_frame.data_type == "cp"),
-                SingleDataFrame(np.array([], dtype=[("temperature", "f8"), ("experiment", "f8")]), data_type="cp"))
-            enthalpy_data = next(
-                (single_data_frame for single_data_frame in single_data_frames if single_data_frame.data_type == "dh"),
-                SingleDataFrame(np.array([], dtype=[("temperature", "f8"), ("experiment", "f8")]), data_type="dh"))
-            # todo: write concatenation of different experiments
+            heat_capacity_data = SingleDataFrame(np.array([], dtype=[("temperature", "f8"), ("experiment", "f8")]),
+                                                 data_type="cp")
+            enthalpy_data = SingleDataFrame(np.array([], dtype=[("temperature", "f8"), ("experiment", "f8")]),
+                                            data_type="dh")
+
+            for single_data_frame in single_data_frames:
+                if single_data_frame.data_type == "cp":
+                    heat_capacity_data.append(single_data_frame)
+                elif single_data_frame.data_type == "dh":
+                    enthalpy_data.append(single_data_frame)
+                else:
+                    raise ValueError
 
             return DataFrame(json_data["substance"],
                              heat_capacity_data,
