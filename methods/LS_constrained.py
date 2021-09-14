@@ -111,5 +111,7 @@ class СonstrainedLeastSquaresSM(FitMethod):
             "coefficients": self.fit_coefficients,
             "function type": "polynomial",
             "formula_dh": h_formula,
-            "formula_cp": c_formula
+            "formula_cp": c_formula,
+            "min temperature": self.enthalpy_temperature[0],
+            "max temperature": self.enthalpy_temperature[-1]
         }

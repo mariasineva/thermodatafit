@@ -193,6 +193,16 @@ class EinsteinPlankSum(EinsteinPlankMethod):
         # elif self.mode == 'j':
         #     ax.scatter(np.concatenate((self.data_frame.dh_t, self.data_frame.cp_t), axis=0), self.residuals, **kwargs)
 
+    def result_txt_output(self):
+        return {
+            "substance": self.data_frame.name,
+            "method": self.name,
+            "coefficients": self.params,
+            "function type": "polynomial",
+            "min temperature": self.enthalpy_temperature[0],
+            "max temperature": self.enthalpy_temperature[-1]
+        }
+
 
 class EinsteinAndPolynomialCorrection(FitMethod):
     """list of functions"""
@@ -315,3 +325,13 @@ class EinsteinAndPolynomialCorrection(FitMethod):
     def calculate_heat_capacity_residuals(self):
         self.heat_capacity_residuals = \
             (self.data_frame.cp_e - self.fit_heat_capacity) / np.std(self.data_frame.cp_e - self.fit_heat_capacity)
+
+    def result_txt_output(self):
+        return {
+            "substance": self.data_frame.name,
+            "method": self.name,
+            "coefficients": self.params,
+            "function type": "polynomial",
+            "min temperature": self.enthalpy_temperature[0],
+            "max temperature": self.enthalpy_temperature[-1]
+        }

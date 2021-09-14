@@ -190,11 +190,13 @@ class JointLeastSquares(FitMethod):
         h_formula = " + ".join([f"{parameter:.4f} T^{i}" for i, parameter in zip(powers, self.fit_coefficients)])
         c_formula = " + ".join(
             [f"{i * parameter:.4f} T^{i - 1}" for i, parameter in zip(powers, self.fit_coefficients) if i != 0])
-
         return {
             "substance": self.data_frame.name,
             "method": self.name,
             "coefficients": self.fit_coefficients,
+            "function type": "polynomial",
             "formula_dh": h_formula,
-            "formula_cp": c_formula
+            "formula_cp": c_formula,
+            "min temperature": self.enthalpy_temperature[0],
+            "max temperature": self.enthalpy_temperature[-1]
         }
