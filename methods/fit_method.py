@@ -19,7 +19,7 @@ class FitMethod:
     def plot_heat_capacity(self, ax, **kwargs):
         """Plot heat capacity (derivative of the enthalpy fit result) using matplotlib."""
         try:
-            ax.plot(self.data_frame.cp_t, self.fit_heat_capacity, **kwargs)
+            ax.plot(self.data_frame.cp_t, self.fit_heat_capacity, **kwargs) #todo здесь через датафрейм а выше нет!
         except ValueError:
             try:
                 ax.plot(self.data_frame.dh_t, self.fit_heat_capacity, **kwargs)
