@@ -1,6 +1,6 @@
-
 import matplotlib.pyplot as plt
 import datetime
+
 now = datetime.datetime.now()
 
 method_colors = ['lightcoral', 'slategrey', 'palegreen', 'orangered', 'steelblue', 'thistle', 'orchid', 'olivedrab',
@@ -118,7 +118,7 @@ def plot_cooks_distance(methods, subplot_position, subplot_title):
     ax.set_title(subplot_title)
     ax.set_xlabel('T,K')
     ax.set_ylabel('Cook\'s Distance')
-    ax.axhline(y=4/len(methods[0].temp), c='black') #todo eliminate dh-only
+    ax.axhline(y=4 / len(methods[0].temp), c='black')  # todo eliminate dh-only
     ax.legend(loc='upper left')
 
 
@@ -248,3 +248,33 @@ def mad_trash_save_all(methods, data, comment=''):
     plot_scale_location(methods, 111, 'Scale – Location')
     plt.savefig(f'../Plots/Temp/{data.name}_scalelocation_{comment}.png', bbox_inches='tight')
     plt.cla()
+
+
+def basic_plots_fake_data(methods, data, show_plot=True, save_plot=False, comment='', source_dots=False,
+                          mode='bigscreen', fake_data=False, fake_data_type=1):
+    if mode == 'laptop':
+        plt.figure(figsize=(8, 8))
+    else:
+        plt.figure(figsize=(12, 12))
+
+    plt.suptitle(f'{data.name} {comment}')
+
+    if fake_data_type % 2 == 0:
+        plt.subplot(221).scatter(fake_data.temperature, fake_data.experiment, s=20, color='orchid')
+    plot_fits(methods, 221, data.name, data)
+
+    if source_dots:
+        plot_fit_heat_capacity_with_dots(methods, 222, 'Specific heat', source_dots)
+    else:
+        plot_fit_heat_capacity(methods, 222, 'Heat Capacity')
+    if fake_data_type % 2 == 1:
+        plt.subplot(222).scatter(fake_data.temperature, fake_data.experiment, s=20, color='orchid')
+    plot_enthalpy_residuals(methods, 223, 'Residuals')
+    plot_heat_capacity_residuals(methods, 224, 'Heat Capacity Residuals')
+
+    if show_plot:
+        plt.tight_layout()
+        plt.show()
+    if save_plot:
+        date = now.strftime('%d%m_%H%M')
+        plt.savefig(f'../Plots/{data.name}_AllMethods_{date}.png', bbox_inches='tight')
