@@ -106,25 +106,26 @@ class JointLeastSquares(FitMethod):
         c_0 = self.data_frame.reference_enthalpy_value
         c_1 = self.data_frame.reference_heat_capacity_value
 
-        updated_experiment = self.data_frame.dh_e - c_0 * np.ones(len(self.enthalpy_temperature)) - c_1 * (
-                self.enthalpy_temperature - t_ref_vector)
+        updated_experiment = self.data_frame.enthalpy_data.experiment - c_0 * np.ones(
+            len(self.enthalpy_temperature)) - c_1 * (
+                                     self.enthalpy_temperature - t_ref_vector)
 
         initial_fit = scipy_ls(self.delta_enthalpy_constrained_cost, self.params,
-                               args=(self.data_frame.dh_t, updated_experiment))
-        print(self.name, initial_fit.x.tolist())
+                               args=(self.data_frame.enthalpy_data.temperature, updated_experiment))
 
         self.fit_coefficients = self.stationary_coefficients(initial_fit.x.tolist(), t_ref, c_0, c_1)
-        self.fit_enthalpy = self.delta_enthalpy(self.fit_coefficients, self.data_frame.dh_t)
-        self.fit_heat_capacity = self.heat_capacity(self.fit_coefficients, self.data_frame.cp_t)
+        self.fit_enthalpy = self.delta_enthalpy(self.fit_coefficients, self.data_frame.enthalpy_data.temperature)
+        self.fit_heat_capacity = self.heat_capacity(self.fit_coefficients, self.heat_capacity_temperature)
 
     def c_mode_approximation(self):
         self.params = np.ones(self.max_power - self.min_power + 1)
-        initial_fit = scipy_ls(self.heat_capacity_cost, self.params, args=(self.data_frame.cp_t, self.data_frame.cp_e))
+        initial_fit = scipy_ls(self.heat_capacity_cost, self.params,
+                               args=(self.heat_capacity_temperature, self.data_frame.heat_capacity_data.experiment))
 
         self.fit_coefficients = initial_fit.x.tolist()
         # self.fit_coefficients = self.stationary_coefficients(initial_fit.x.tolist(), t_ref, c_0, c_1)
-        self.fit_enthalpy = self.delta_enthalpy(self.fit_coefficients, self.data_frame.dh_t)
-        self.fit_heat_capacity = self.heat_capacity(self.fit_coefficients, self.data_frame.cp_t)
+        self.fit_enthalpy = self.delta_enthalpy(self.fit_coefficients, self.data_frame.enthalpy_data.temperature)
+        self.fit_heat_capacity = self.heat_capacity(self.fit_coefficients, self.heat_capacity_temperature)
 
     def c_mode_constrained_approximation(self):
         t_ref = self.data_frame.reference_temperature
@@ -135,11 +136,11 @@ class JointLeastSquares(FitMethod):
         updated_cp = self.data_frame.cp_e - c_1 * np.ones(len(self.heat_capacity_temperature))
 
         initial_fit = scipy_ls(self.heat_capacity_constrained_cost, self.params,
-                               args=(self.data_frame.cp_t, updated_cp))
+                               args=(self.heat_capacity_data.temperature, updated_cp))
 
         self.fit_coefficients = self.stationary_coefficients(initial_fit.x.tolist(), t_ref, c_0, c_1)
-        self.fit_enthalpy = self.delta_enthalpy(self.fit_coefficients, self.data_frame.dh_t)
-        self.fit_heat_capacity = self.heat_capacity(self.fit_coefficients, self.data_frame.cp_t)
+        self.fit_enthalpy = self.delta_enthalpy(self.fit_coefficients, self.data_frame.enthalpy_data.temperature)
+        self.fit_heat_capacity = self.heat_capacity(self.fit_coefficients, self.heat_capacity_data.temperature)
 
     def j_mode_approximation(self):
         t_ref = self.data_frame.reference_temperature
@@ -153,18 +154,18 @@ class JointLeastSquares(FitMethod):
         updated_heat_capacity = self.data_frame.cp_e - c_1 * np.ones(len(self.heat_capacity_temperature))
 
         initial_fit = scipy_ls(self.joint_cost_function, self.params,
-                               args=(self.enthalpy_temperature, updated_enthalpy, self.data_frame.cp_t,
+                               args=(self.enthalpy_temperature, updated_enthalpy, self.heat_capacity_temperature,
                                      updated_heat_capacity))
 
         self.fit_coefficients = self.stationary_coefficients(initial_fit.x.tolist(), t_ref, c_0, c_1)
-        self.fit_enthalpy = self.delta_enthalpy(self.fit_coefficients, self.data_frame.dh_t)
-        self.fit_heat_capacity = self.heat_capacity(self.fit_coefficients, self.data_frame.cp_t)
+        self.fit_enthalpy = self.delta_enthalpy(self.fit_coefficients, self.data_frame.enthalpy_data.temperature)
+        self.fit_heat_capacity = self.heat_capacity(self.fit_coefficients, self.heat_capacity_temperature)
 
     def fit(self, data_frame: DataFrame):
         self.data_frame = data_frame
-        self.enthalpy_temperature = data_frame.dh_t
-        self.heat_capacity_temperature = data_frame.cp_t
-        self.enthalpy_data = data_frame.dh_e
+        self.enthalpy_temperature = data_frame.enthalpy_data.temperature
+        self.heat_capacity_temperature = data_frame.heat_capacity_data.temperature
+        self.enthalpy_data = data_frame.enthalpy_data.experiment
 
         {
             'cc': self.c_mode_constrained_approximation,
@@ -173,17 +174,17 @@ class JointLeastSquares(FitMethod):
             'h': self.h_mode_approximation
         }[self.mode]()
 
-        print('Joint lsq result:', self.name, self.fit_coefficients)
+        # print('Joint lsq result:', self.name, self.fit_coefficients)
 
     # def calculate_enthalpy_residuals(self):
     #     if self.mode == 'h':
-    # self.enthalpy_residuals = (self.data_frame.dh_e - self.fit_enthalpy) / np.std(
-    #     self.data_frame.dh_e - self.fit_enthalpy)
+    # self.enthalpy_residuals = (self.data_frame.data_frame.enthalpy_data.experiment - self.fit_enthalpy) / np.std(
+    #     self.data_frame.data_frame.enthalpy_data.experiment - self.fit_enthalpy)
 
     def calculate_heat_capacity_residuals(self):
         self.heat_capacity_residuals = \
-            (self.data_frame.cp_e - self.heat_capacity(self.fit_coefficients, self.heat_capacity_temperature)) / \
-            np.std(self.data_frame.cp_e - self.heat_capacity(self.fit_coefficients, self.heat_capacity_temperature))
+            (self.data_frame.heat_capacity_data.experiment - self.heat_capacity(self.fit_coefficients, self.heat_capacity_temperature)) / \
+            np.std(self.data_frame.heat_capacity_data.experiment - self.heat_capacity(self.fit_coefficients, self.heat_capacity_temperature))
 
     def result_txt_output(self):
         powers = [x for x in range(self.min_power, self.max_power + 1)]
