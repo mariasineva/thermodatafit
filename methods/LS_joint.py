@@ -151,7 +151,7 @@ class JointLeastSquares(FitMethod):
 
         updated_enthalpy = self.enthalpy_data - c_0 * np.ones(len(self.enthalpy_temperature)) - c_1 * (
                 self.enthalpy_temperature - t_ref_vector)
-        updated_heat_capacity = self.data_frame.cp_e - c_1 * np.ones(len(self.heat_capacity_temperature))
+        updated_heat_capacity = self.data_frame.heat_capacity_data.experiment - c_1 * np.ones(len(self.heat_capacity_temperature))
 
         initial_fit = scipy_ls(self.joint_cost_function, self.params,
                                args=(self.enthalpy_temperature, updated_enthalpy, self.heat_capacity_temperature,

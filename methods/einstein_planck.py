@@ -105,14 +105,20 @@ class EinsteinPlankSum(EinsteinPlankMethod):
 
             if self.mode == 'j':
                 res_lsq = scipy_ls(self.joint_cost_function, self.fit_coefficients, bounds=self.bounds,
-                                   args=(self.data_frame.dh_t, self.data_frame.dh_e,
-                                         self.data_frame.cp_t, self.data_frame.cp_e))
+                                   args=(
+                                       self.data_frame.enthalpy_data.temperature,
+                                       self.data_frame.enthalpy_data.experiment,
+                                       self.data_frame.heat_capacity_data.temperature,
+                                       self.data_frame.heat_capacity_data.experiment))
             elif self.mode == 'h':
                 res_lsq = scipy_ls(self.delta_enthalpy_cost, self.fit_coefficients, bounds=self.bounds,
-                                   args=(self.data_frame.dh_t, self.data_frame.dh_e))
+                                   args=(
+                                       self.data_frame.enthalpy_data.temperature,
+                                       self.data_frame.enthalpy_data.experiment))
             elif self.mode == 'c':
                 res_lsq = scipy_ls(self.heat_capacity_cost, self.fit_coefficients, bounds=self.bounds,
-                                   args=(self.data_frame.cp_t, self.data_frame.cp_e))
+                                   args=(self.data_frame.heat_capacity_data.temperature,
+                                         self.data_frame.heat_capacity_data.experiment))
             else:
                 print('Wrong calculation type!')
                 raise ValueError('Type can only be h c j.\n')
@@ -151,13 +157,13 @@ class EinsteinPlankSum(EinsteinPlankMethod):
 
         self.approx()
 
-        self.enthalpy_temperature = data_frame.dh_t
-        self.heat_capacity_temperature = data_frame.cp_t
+        self.enthalpy_temperature = data_frame.enthalpy_data.temperature
+        self.heat_capacity_temperature = data_frame.heat_capacity_data.temperature
 
-        self.fit_enthalpy = self.delta_enthalpy(self.fit_coefficients, self.data_frame.dh_t)
+        self.fit_enthalpy = self.delta_enthalpy(self.fit_coefficients, self.data_frame.enthalpy_data.temperature)
 
-        if not len(self.data_frame.cp_t):
-            self.fit_heat_capacity = self.heat_capacity(self.fit_coefficients, self.data_frame.dh_t)
+        if not len(self.data_frame.heat_capacity_data.temperature):
+            self.fit_heat_capacity = self.heat_capacity(self.fit_coefficients, self.data_frame.enthalpy_data.temperature)
         else:
             self.fit_heat_capacity = self.heat_capacity(self.fit_coefficients, self.heat_capacity_temperature)
 
@@ -171,7 +177,7 @@ class EinsteinPlankSum(EinsteinPlankMethod):
     def calculate_enthalpy_residuals(self):
         # if self.mode == 'h':
         self.enthalpy_residuals = \
-            (self.data_frame.dh_e - self.fit_enthalpy) / np.std(self.data_frame.dh_e - self.fit_enthalpy)
+            (self.data_frame.enthalpy_data.experiment - self.fit_enthalpy) / np.std(self.data_frame.enthalpy_data.experiment - self.fit_enthalpy)
         # elif self.mode == 'c':
         #     self.residuals = (self.data_frame.cp_e - self.fit_derivative) / \
         #                      np.std(self.data_frame.cp_e - self.fit_derivative)
@@ -183,12 +189,12 @@ class EinsteinPlankSum(EinsteinPlankMethod):
 
     def calculate_heat_capacity_residuals(self):
         self.heat_capacity_residuals = \
-            (self.data_frame.cp_e - self.fit_heat_capacity) / np.std(self.data_frame.cp_e - self.fit_heat_capacity)
+            (self.data_frame.heat_capacity_data.experiment - self.fit_heat_capacity) / np.std(self.data_frame.heat_capacity_data.experiment - self.fit_heat_capacity)
 
     def plot_enthalpy_residuals(self, ax, **kwargs):
         """Plot standartised residuals using matplotlib."""
         # if self.mode == 'h':
-        ax.scatter(self.data_frame.dh_t, self.enthalpy_residuals, **kwargs)
+        ax.scatter(self.data_frame.enthalpy_data.temperature, self.enthalpy_residuals, **kwargs)
         # elif self.mode == 'c':
         #     ax.scatter(self.data_frame.cp_t, self.residuals, **kwargs)
         # elif self.mode == 'j':
