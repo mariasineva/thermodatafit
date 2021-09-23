@@ -259,7 +259,7 @@ def basic_plots_fake_data(methods, data, show_plot=True, save_plot=False, commen
 
     plt.suptitle(f'{data.name} {comment}')
 
-    if fake_data_type % 2 == 0:
+    if fake_data_type % 2 == 1:
         plt.subplot(221).scatter(fake_data.temperature, fake_data.experiment, s=20, color='orchid')
     plot_fits(methods, 221, data.name, data)
 
@@ -267,7 +267,7 @@ def basic_plots_fake_data(methods, data, show_plot=True, save_plot=False, commen
         plot_fit_heat_capacity_with_dots(methods, 222, 'Specific heat', source_dots)
     else:
         plot_fit_heat_capacity(methods, 222, 'Heat Capacity')
-    if fake_data_type % 2 == 1:
+    if fake_data_type % 2 == 0:
         plt.subplot(222).scatter(fake_data.temperature, fake_data.experiment, s=20, color='orchid')
     plot_enthalpy_residuals(methods, 223, 'Residuals')
     plot_heat_capacity_residuals(methods, 224, 'Heat Capacity Residuals')

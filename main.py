@@ -13,12 +13,14 @@ SOURCE_DATA = [
     # [data_file, data_name, c_ref, hc_file_name]
     # ['allDataAlphadH', 'Ti_Alpha', 25.06, 'TiAlphaCp'],
     # ['allDataBetadH', 'Ti_Beta', 25.06, 'TiBetaCp'],
-    # ['dataAu', 'Au', 25.27, 'AuCp'],
+    ['dataAu', 'Au', 25.27, 'AuCp'],
     # ['UO2dHall', 'UO2', 15.2008, 'UO2CpCut'],
-    ['VdHlow', 'V', 24.48, 'VCp'],
+    # ['VdHlow', 'V', 24.48, 'VCp'],
     # ['NpO2', 'NpO2', 66.0, 'NpO2CpCut150'],
     # ['NpO2', 'NpO2', 66.0, 'NpO2Cp'],
 ]
+
+fake_data_iterations = 100
 
 FIT_METHODS = [
     # ExternalCurves.create_from_cp_params(
@@ -30,17 +32,17 @@ FIT_METHODS = [
     # EinsteinPlankSum(3, mode='c'),
     # EinsteinPlankSum(3, mode='j'),
     # EinsteinAndPolynomialCorrection(3, mode='c'),
-    JointLeastSquares(min_power=-1, max_power=4, mode='h'),
-    # JointLeastSquares(min_power=-1, max_power=3, mode='c'),
+    JointLeastSquares(min_power=-1, max_power=3, mode='h'),
+    JointLeastSquares(min_power=-1, max_power=3, mode='c'),
     # JointLeastSquares(min_power=-1, max_power=3, mode='cc'),
     # JointLeastSquares(min_power=-1, max_power=4, mode='j'),
     # WeightedJointLeastSquares(min_power=-1, max_power=3, mode='j', weight_parameter=0.99),
     # WeightedJointLeastSquares(min_power=-1, max_power=3, mode='cc'),
-    IterativeFakeDataGeneration(2,
+    IterativeFakeDataGeneration(fake_data_iterations,
         c_mode_fitter=JointLeastSquares(min_power=-1, max_power=3, mode='c'),
         h_mode_fitter=JointLeastSquares(min_power=-1, max_power=3, mode='h'))
 
-    # IterativeFakeDataGeneration(
+    # IterativeFakeDataGeneration(fake_data_iterations,
     #     c_mode_fitter=EinsteinPlankSum(3, mode='c'),
     #     h_mode_fitter=EinsteinPlankSum(3, mode='h'))
 ]
@@ -93,7 +95,7 @@ if __name__ == '__main__':
         # draw.basic_plots(FIT_METHODS, data_frame, SHOW_PLOTS, SAVE_PLOTS, COMMENT, data_frame.heat_capacity_data,
         #                  SCREEN_TYPE)
         draw.basic_plots_fake_data(FIT_METHODS, data_frame, SHOW_PLOTS, SAVE_PLOTS, COMMENT, data_frame.heat_capacity_data,
-                         SCREEN_TYPE, FIT_METHODS[-1].get_fake_data(), 2)
+                         SCREEN_TYPE, FIT_METHODS[-1].get_fake_data(), fake_data_iterations)
         # draw.stats_plots(FIT_METHODS, data_frame, show_plots, SHOW_PLOTS, COMMENT, SCREEN_TYPE)
         # todo stat plots for dh & cp : qq; res vs fit
         # draw.dh_and_cp_plots(FIT_METHODS, data_frame, hc_data, SHOW_PLOTS, SAVE_PLOTS, COMMENT)
