@@ -30,7 +30,8 @@ def plot_fit_heat_capacity(methods, subplot_position, subplot_title):
     ax.spines['right'].set_visible(False)
 
     for (method, color, linestyle) in zip(methods, method_colors, line_styles):
-        method.plot_derivative(ax, color=color, label=method.name, linestyle=linestyle)
+        pass
+        # method.plot_derivative(ax, color=color, label=method.name, linestyle=linestyle) # not working
     ax.set_title(subplot_title)
 
     ax.set_xlabel('T, K')

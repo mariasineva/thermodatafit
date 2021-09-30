@@ -14,7 +14,7 @@ class FitMethod:
 
     def plot_enthalpy(self, ax, **kwargs):
         """Plot fit result using matplotlib."""
-        ax.plot(self.enthalpy_temperature, self.fit_enthalpy, **kwargs)
+        ax.plot(self.data_frame.enthalpy_data.temperature, self.fit_enthalpy, **kwargs)
 
     def plot_heat_capacity(self, ax, **kwargs):
         """Plot heat capacity (derivative of the enthalpy fit result) using matplotlib."""
@@ -52,11 +52,11 @@ class FitMethod:
 
     def plot_enthalpy_residuals(self, ax, **kwargs):
         """Plot standartised residuals using matplotlib."""
-        ax.scatter(self.enthalpy_temperature, self.enthalpy_residuals, **kwargs)
+        ax.scatter(self.data_frame.enthalpy_data.temperature, self.enthalpy_residuals, **kwargs)
 
     def plot_heat_capacity_residuals(self, ax, **kwargs):
         """Plot standartised residuals using matplotlib."""
-        ax.scatter(self.heat_capacity_temperature, self.heat_capacity_residuals, **kwargs)
+        ax.scatter(self.data_frame.heat_capacity_data.temperature, self.heat_capacity_residuals, **kwargs)
 
     def plot_normality(self, ax, color, label):
         """qq normality test"""

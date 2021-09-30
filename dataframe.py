@@ -10,7 +10,6 @@ class SingleDataFrame:
 
     def __init__(self, data_set: np.ndarray, data_type: str, source_name: str = "Unnamed data set", year: int = 0):
         # todo: проверять, что в датасете есть поля temperature и experiment и они одинаковой длины.
-        self.data_set = data_set
         self.original_temperature = data_set["temperature"]
         self.original_experiment = data_set["experiment"]
         self.temperature = copy.deepcopy(self.original_temperature)
@@ -24,7 +23,7 @@ class SingleDataFrame:
     def from_txt_file(filename: str, data_type: str, name: str = "Unnamed data set"):
         """Create data frame from a txt file."""
         data_set = np.loadtxt(filename, dtype=[("temperature", "f8"), ("experiment", "f8")])
-        np.sort(data_set, order="temperature")
+        data_set = np.sort(data_set, order="temperature")
 
         return SingleDataFrame(data_set, data_type=data_type, source_name=name)
 
@@ -117,8 +116,14 @@ class SingleDataFrame:
 
     def append(self, another_data_frame):
         if self.data_type == another_data_frame.data_type:
-            self.temperature = np.concatenate((self.temperature, another_data_frame.temperature), axis=None)
-            self.experiment = np.concatenate((self.experiment, another_data_frame.experiment), axis=None)
+            data_set = np.rec.fromarrays(
+                (np.concatenate((self.temperature, another_data_frame.temperature), axis=None),
+                 np.concatenate((self.experiment, another_data_frame.experiment), axis=None)),
+                names=["temperature", "experiment"])
+            data_set = np.sort(data_set, order="temperature")
+
+            self.temperature = data_set["temperature"]
+            self.experiment = data_set["experiment"]
         else:
             raise ValueError('Do not mix data types')
 
@@ -138,10 +143,10 @@ class DataFrame:
 
         self.heat_capacity_data = heat_capacity_data
         self.enthalpy_data = enthalpy_data
-        self.cp_t = heat_capacity_data.temperature
-        self.cp_e = heat_capacity_data.experiment
-        self.dh_t = enthalpy_data.temperature
-        self.dh_e = enthalpy_data.experiment
+        # self.cp_t = heat_capacity_data.temperature
+        # self.cp_e = heat_capacity_data.experiment
+        # self.dh_t = enthalpy_data.temperature
+        # self.dh_e = enthalpy_data.experiment
 
     @staticmethod
     def from_sources_dict(sources: dict, name: str = "Unnamed data set"):
