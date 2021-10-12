@@ -1,4 +1,7 @@
 .idea/
+iterations_output.tsv
+filtering_iterations.gif
+cp_iterations.gif
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

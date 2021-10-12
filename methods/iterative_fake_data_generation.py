@@ -1,6 +1,7 @@
 from dataframe import DataFrame, SingleDataFrame
 from methods.fit_method import FitMethod
 import numpy as np
+import numpy.lib.recfunctions
 import copy
 import matplotlib.pyplot as plt
 from celluloid import Camera
